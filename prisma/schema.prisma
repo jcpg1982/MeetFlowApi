@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String           @id @default(uuid())
+  email            String           @unique
+  password         String
+  name             String
+  photo            String?
+  bio              String?
+  callPrice        Float            @default(0.0)
+  fcmToken         String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  sentRequests     MeetingRequest[] @relation("SentRequests")
+  receivedRequests MeetingRequest[] @relation("ReceivedRequests")
+}
+
+model MeetingRequest {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  status      String   @default("PENDING") // PENDING, ACCEPTED, DECLINED, COMPLETED
+  scheduledAt DateTime?
+  price       Float    @default(0.0)
+  createdAt   DateTime @default(now())
+  
+  sender      User     @relation("SentRequests", fields: [senderId], references: [id])
+  receiver    User     @relation("ReceivedRequests", fields: [receiverId], references: [id])
+}
