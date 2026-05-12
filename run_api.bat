@@ -22,8 +22,10 @@ IF NOT EXIST node_modules (
     )
 )
 
-:: Generar el cliente de Prisma por si acaso hay cambios en el schema
-echo [INFO] Sincronizando Prisma Client...
+:: Generar el cliente de Prisma y sincronizar la base de datos
+echo [INFO] Sincronizando Esquema con la Base de Datos...
+call npx prisma db push
+echo [INFO] Generando Prisma Client...
 call npx prisma generate
 
 :: Preguntar si se desea limpiar la base de datos
