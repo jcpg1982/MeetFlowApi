@@ -52,7 +52,7 @@ export const getFeedVideos = async (req: Request, res: Response) => {
 
 // Followers Feed
 export const getFollowersFeed = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id;
+  const userId = (req as any).userId;
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
   try {
@@ -82,7 +82,7 @@ export const getFollowersFeed = async (req: Request, res: Response) => {
 // Tracking Interaction
 export const trackInteraction = async (req: Request, res: Response) => {
   const { videoId, watchTime, isCompleted } = req.body;
-  const userId = (req as any).user?.id;
+  const userId = (req as any).userId;
 
   try {
     // Check if video exists in DB (mock videos v1, v2 might not exist)
