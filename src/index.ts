@@ -5,6 +5,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
+import videoRoutes from './routes/videoRoutes';
 import requestRoutes from './routes/requestRoutes';
 import { setupSignaling } from './utils/signaling';
 
@@ -27,6 +28,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/videos', videoRoutes);
 app.use('/api/requests', requestRoutes);
 
 app.get('/', (req, res) => {

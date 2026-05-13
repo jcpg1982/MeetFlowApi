@@ -21,6 +21,7 @@ model User {
   updatedAt        DateTime         @updatedAt
   sentRequests     MeetingRequest[] @relation("SentRequests")
   receivedRequests MeetingRequest[] @relation("ReceivedRequests")
+  videos           Video[]
 }
 
 model MeetingRequest {
@@ -34,4 +35,18 @@ model MeetingRequest {
   
   sender      User     @relation("SentRequests", fields: [senderId], references: [id])
   receiver    User     @relation("ReceivedRequests", fields: [receiverId], references: [id])
+}
+
+model Video {
+  id           String   @id @default(uuid())
+  userId       String
+  videoUrl     String
+  thumbnailUrl String?
+  title        String?
+  description  String?
+  viewCount    Int      @default(0)
+  likeCount    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id])
 }
