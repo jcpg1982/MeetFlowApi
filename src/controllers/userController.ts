@@ -63,3 +63,35 @@ export const updateFcmToken = async (req: any, res: Response) => {
     res.status(500).json({ error: 'Error updating FCM Token' });
   }
 };
+export const followUser = async (req: any, res: Response) => {
+  const { followingId } = req.body;
+  const followerId = req.userId;
+
+  if (followerId === followingId) {
+    return res.status(400).json({ error: 'Cannot follow yourself' });
+  }
+
+  try {
+    const existingFollow = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: { followerId, followingId }
+      }
+    });
+
+    if (existingFollow) {
+      await prisma.follow.delete({
+        where: {
+          followerId_followingId: { followerId, followingId }
+        }
+      });
+      res.json({ isFollowing: false });
+    } else {
+      await prisma.follow.create({
+        data: { followerId, followingId }
+      });
+      res.json({ isFollowing: true });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error following user' });
+  }
+};

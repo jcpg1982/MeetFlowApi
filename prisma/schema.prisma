@@ -28,6 +28,8 @@ model User {
   interactions     VideoInteraction[]
   followers        Follow[]         @relation("Followers")
   following        Follow[]         @relation("Following")
+  favorites        FavoriteVideo[]
+  likes            Like[]
 }
 
 model MeetingRequest {
@@ -56,6 +58,8 @@ model Video {
 
   user         User               @relation(fields: [userId], references: [id])
   interactions VideoInteraction[]
+  favorites    FavoriteVideo[]
+  likes        Like[]
 }
 
 model VideoInteraction {
@@ -80,3 +84,29 @@ model Follow {
 
   @@id([followerId, followingId])
 }
+
+model FavoriteVideo {
+  id        String   @id @default(uuid())
+  videoId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  video     Video    @relation(fields: [videoId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([videoId, userId])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  videoId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  video     Video    @relation(fields: [videoId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([videoId, userId])
+}
+
+

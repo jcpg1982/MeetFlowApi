@@ -5,11 +5,22 @@ const prisma = new PrismaClient();
 
 // For You Feed Algorithm
 export const getFeedVideos = async (req: Request, res: Response) => {
+  const userId = (req as any).userId;
+
   try {
-    // Basic Algorithm: Popularity (views + likes) + Recent
     const videos = await prisma.video.findMany({
       include: {
-        user: { select: { name: true, photo: true } }
+        user: { 
+          select: { 
+            id: true,
+            name: true, 
+            photo: true,
+            callPrice: true,
+            followers: userId ? { where: { followerId: userId } } : false
+          } 
+        },
+        likes: userId ? { where: { userId } } : false,
+        favorites: userId ? { where: { userId } } : false
       },
       orderBy: [
         { viewCount: 'desc' },
@@ -33,19 +44,25 @@ export const getFeedVideos = async (req: Request, res: Response) => {
       stats: {
         viewsCount: v.viewCount,
         likesCount: v.likeCount,
-        favoritesCount: 0,
+        favoritesCount: 0, // Could count v.favorites if I included it differently
         sharesCount: 0,
         averageWatchTime: 0,
         completionRate: 0.0,
         uniqueViewers: 0
       },
-      isLiked: false,
-      isFavorite: false,
-      user: v.user
+      isLiked: (v.likes as any)?.length > 0,
+      isFavorite: (v.favorites as any)?.length > 0,
+      isContact: (v.user as any)?.followers?.length > 0,
+      user: {
+        name: v.user.name,
+        photo: v.user.photo,
+        callPrice: v.user.callPrice
+      }
     }));
 
     res.json(formattedVideos);
   } catch (error) {
+    console.error('Error fetching feed:', error);
     res.json(getMockVideos());
   }
 };
@@ -114,7 +131,7 @@ export const trackInteraction = async (req: Request, res: Response) => {
 };
 
 export const getUserVideos = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.params.userId as string;
   try {
     const videos = await prisma.video.findMany({
         where: { userId: userId as string },
@@ -131,11 +148,65 @@ export const uploadVideo = async (req: Request, res: Response) => {
 };
 
 export const toggleLike = async (req: Request, res: Response) => {
-  res.json({ success: true });
+  const videoId = req.params.videoId as string;
+  const userId = (req as any).userId as string;
+
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const existingLike = await prisma.like.findUnique({
+      where: { videoId_userId: { videoId, userId } }
+    });
+
+    if (existingLike) {
+      await prisma.like.delete({
+        where: { id: existingLike.id }
+      });
+      await prisma.video.update({
+        where: { id: videoId },
+        data: { likeCount: { decrement: 1 } }
+      });
+      res.json({ isLiked: false });
+    } else {
+      await prisma.like.create({
+        data: { videoId, userId }
+      });
+      await prisma.video.update({
+        where: { id: videoId },
+        data: { likeCount: { increment: 1 } }
+      });
+      res.json({ isLiked: true });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error toggling like' });
+  }
 };
 
 export const toggleFavorite = async (req: Request, res: Response) => {
-  res.json({ success: true });
+  const videoId = req.params.videoId as string;
+  const userId = (req as any).userId as string;
+
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const existingFavorite = await prisma.favoriteVideo.findUnique({
+      where: { videoId_userId: { videoId, userId } }
+    });
+
+    if (existingFavorite) {
+      await prisma.favoriteVideo.delete({
+        where: { id: existingFavorite.id }
+      });
+      res.json({ isFavorite: false });
+    } else {
+      await prisma.favoriteVideo.create({
+        data: { videoId, userId }
+      });
+      res.json({ isFavorite: true });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error toggling favorite' });
+  }
 };
 
 function getMockVideos() {
