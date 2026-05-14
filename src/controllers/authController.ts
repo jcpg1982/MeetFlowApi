@@ -3,13 +3,15 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
+import crypto from 'crypto';
+
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'refreshsecret';
 
-const generateTokens = (userId: string) => {
-  const accessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '2h' });
-  const refreshToken = jwt.sign({ userId }, REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
+const generateTokens = (userId: string, sessionId: string) => {
+  const accessToken = jwt.sign({ userId, sessionId }, JWT_SECRET, { expiresIn: '2h' });
+  const refreshToken = jwt.sign({ userId, sessionId }, REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
   return { accessToken, refreshToken };
 };
 
@@ -23,17 +25,17 @@ export const register = async (req: Request, res: Response) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const { accessToken, refreshToken } = generateTokens('temp'); // We'll update after creation
-
+    const sessionId = crypto.randomUUID();
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
+        sessionId,
       },
     });
 
-    const tokens = generateTokens(user.id);
+    const tokens = generateTokens(user.id, sessionId);
     await prisma.user.update({
       where: { id: user.id },
       data: { refreshToken: tokens.refreshToken }
@@ -51,7 +53,7 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceId, deviceName } = req.body;
     
     const user = await prisma.user.findUnique({ where: { email } });
     
@@ -63,11 +65,28 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Incorrect password' });
     }
 
-    const { accessToken, refreshToken } = generateTokens(user.id);
+    // Notificar al dispositivo anterior si existe una sesión activa
+    if (user.sessionId && user.fcmToken) {
+      const { sendNotification } = require('../utils/notifications');
+      await sendNotification(
+        user.fcmToken,
+        'Nueva sesión iniciada',
+        `Se ha iniciado sesión desde un nuevo dispositivo (${deviceName || 'Desconocido'}). La sesión en este dispositivo ha expirado.`,
+        { type: 'SESSION_EXPIRED' }
+      );
+    }
+
+    const sessionId = crypto.randomUUID();
+    const { accessToken, refreshToken } = generateTokens(user.id, sessionId);
     
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken }
+      data: { 
+        refreshToken, 
+        sessionId,
+        lastDeviceId: deviceId || null,
+        lastDeviceName: deviceName || null
+      }
     });
 
     res.json({ 
@@ -87,17 +106,21 @@ export const refresh = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Refresh token is required' });
     }
 
-    const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as { userId: string };
+    const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as { userId: string, sessionId: string };
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
 
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(401).json({ message: 'Invalid refresh token' });
+    if (!user || user.refreshToken !== refreshToken || user.sessionId !== payload.sessionId) {
+      return res.status(401).json({ message: 'Invalid refresh token or session expired' });
     }
 
-    const tokens = generateTokens(user.id);
+    const newSessionId = crypto.randomUUID();
+    const tokens = generateTokens(user.id, newSessionId);
     await prisma.user.update({
       where: { id: user.id },
-      data: { refreshToken: tokens.refreshToken }
+      data: { 
+        refreshToken: tokens.refreshToken,
+        sessionId: newSessionId
+      }
     });
 
     res.json({ 
@@ -106,5 +129,21 @@ export const refresh = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(401).json({ message: 'Invalid refresh token', error });
+  }
+};
+
+export const logout = async (req: any, res: Response) => {
+  try {
+    const userId = req.userId;
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        refreshToken: null,
+        sessionId: null
+      }
+    });
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error logging out', error });
   }
 };
