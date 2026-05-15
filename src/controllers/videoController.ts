@@ -131,15 +131,57 @@ export const trackInteraction = async (req: Request, res: Response) => {
 };
 
 export const getUserVideos = async (req: Request, res: Response) => {
-  const userId = req.params.userId as string;
+  const userId = req.params.userId || (req as any).userId;
   try {
     const videos = await prisma.video.findMany({
-        where: { userId: userId as string },
-        include: { user: { select: { name: true, photo: true } } }
+        where: { userId },
+        include: { user: { select: { name: true, photo: true, callPrice: true } } },
+        orderBy: { createdAt: 'desc' }
     });
-    res.json(videos);
+    res.json(videos.map(v => ({
+      id: v.id,
+      userId: v.userId,
+      videoUrl: v.videoUrl,
+      thumbnailUrl: v.thumbnailUrl,
+      title: v.title,
+      description: v.description,
+      createdAt: v.createdAt.getTime(),
+      stats: { viewsCount: v.viewCount, likesCount: v.likeCount },
+      user: v.user
+    })));
   } catch (error) {
     res.status(500).json({ error: 'Error fetching user videos' });
+  }
+};
+
+export const getFavoriteVideos = async (req: Request, res: Response) => {
+  const userId = (req as any).userId;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const favorites = await prisma.favoriteVideo.findMany({
+      where: { userId },
+      include: {
+        video: {
+          include: { user: { select: { name: true, photo: true, callPrice: true } } }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(favorites.map(f => ({
+      id: f.video.id,
+      userId: f.video.userId,
+      videoUrl: f.video.videoUrl,
+      thumbnailUrl: f.video.thumbnailUrl,
+      title: f.video.title,
+      description: f.video.description,
+      createdAt: f.video.createdAt.getTime(),
+      stats: { viewsCount: f.video.viewCount, likesCount: f.video.likeCount },
+      user: f.video.user
+    })));
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching favorite videos' });
   }
 };
 

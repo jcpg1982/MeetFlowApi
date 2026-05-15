@@ -16,11 +16,38 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: any, res: Response) => {
   try {
+    const userId = req.userId;
     const user = await prisma.user.findUnique({
-      where: { id: req.userId },
-      select: { id: true, name: true, email: true, photo: true, bio: true, callPrice: true }
+      where: { id: userId },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        photo: true, 
+        bio: true, 
+        callPrice: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true
+          }
+        }
+      }
     });
-    res.json(user);
+
+    const videos = await prisma.video.findMany({
+      where: { userId },
+      select: { likeCount: true }
+    });
+
+    const totalLikes = videos.reduce((sum, v) => sum + (v.likeCount || 0), 0);
+
+    res.json({
+      ...user,
+      followersCount: user?._count.followers || 0,
+      followingCount: user?._count.following || 0,
+      likesCount: totalLikes
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching profile', error });
   }
@@ -93,5 +120,39 @@ export const followUser = async (req: any, res: Response) => {
     }
   } catch (error) {
     res.status(500).json({ error: 'Error following user' });
+  }
+};
+
+export const getFollowers = async (req: any, res: Response) => {
+  const userId = req.userId;
+  try {
+    const followers = await prisma.follow.findMany({
+      where: { followingId: userId },
+      include: { 
+        follower: { 
+          select: { id: true, name: true, photo: true, bio: true, callPrice: true } 
+        } 
+      }
+    });
+    res.json(followers.map(f => f.follower));
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching followers' });
+  }
+};
+
+export const getFollowing = async (req: any, res: Response) => {
+  const userId = req.userId;
+  try {
+    const following = await prisma.follow.findMany({
+      where: { followerId: userId },
+      include: { 
+        following: { 
+          select: { id: true, name: true, photo: true, bio: true, callPrice: true } 
+        } 
+      }
+    });
+    res.json(following.map(f => f.following));
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching following' });
   }
 };
