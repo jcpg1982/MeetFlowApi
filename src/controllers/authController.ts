@@ -28,9 +28,19 @@ export const register = async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const sessionId = crypto.randomUUID();
+    
+    // Generate a random unique alias
+    let alias = `user_${crypto.randomBytes(3).toString('hex')}`;
+    let aliasExists = await prisma.user.findUnique({ where: { alias } });
+    while (aliasExists) {
+      alias = `user_${crypto.randomBytes(3).toString('hex')}`;
+      aliasExists = await prisma.user.findUnique({ where: { alias } });
+    }
+
     const user = await prisma.user.create({
       data: {
         email,
+        alias,
         password: hashedPassword,
         name,
         sessionId,
@@ -46,7 +56,7 @@ export const register = async (req: Request, res: Response) => {
     res.status(201).json({ 
       token: tokens.accessToken, 
       refreshToken: tokens.refreshToken,
-      user: { id: user.id, email: user.email, name: user.name } 
+      user: { id: user.id, email: user.email, name: user.name, userName: user.alias } 
     });
   } catch (error) {
     res.status(500).json({ message: 'Error registering user', error });
@@ -116,7 +126,7 @@ export const login = async (req: Request, res: Response) => {
     res.json({ 
       token: accessToken, 
       refreshToken,
-      user: { id: user.id, email: user.email, name: user.name } 
+      user: { id: user.id, email: user.email, name: user.name, userName: user.alias } 
     });
   } catch (error) {
     res.status(500).json({ message: 'Error logging in', error });
