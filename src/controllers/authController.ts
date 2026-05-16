@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
 import crypto from 'crypto';
+import { io } from '../index';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecret';
@@ -17,7 +18,8 @@ const generateTokens = (userId: string, sessionId: string) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, name } = req.body;
+    const { password, name } = req.body;
+    const email = req.body.email?.toLowerCase();
     
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -53,7 +55,8 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password, deviceId, deviceName } = req.body;
+    const { password, deviceId, deviceName, forceLogout } = req.body;
+    const email = req.body.email?.toLowerCase();
     
     const user = await prisma.user.findUnique({ where: { email } });
     
@@ -65,15 +68,36 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Incorrect password' });
     }
 
-    // Notificar al dispositivo anterior si existe una sesión activa
-    if (user.sessionId && user.fcmToken) {
-      const { sendNotification } = require('../utils/notifications');
-      await sendNotification(
-        user.fcmToken,
-        'Nueva sesión iniciada',
-        `Se ha iniciado sesión desde un nuevo dispositivo (${deviceName || 'Desconocido'}). La sesión en este dispositivo ha expirado.`,
-        { type: 'SESSION_EXPIRED' }
-      );
+    // Si ya existe una sesión y no se ha forzado el cierre
+    if (user.sessionId && !forceLogout) {
+      return res.status(409).json({ 
+        message: 'ACTIVE_SESSION_EXISTS',
+        deviceName: user.lastDeviceName || 'Otro dispositivo'
+      });
+    }
+
+    // Notificar al dispositivo anterior si existe una sesión activa y se va a invalidar
+    if (user.sessionId) {
+      // 1. Vía Socket.io (Tiempo real)
+      io.to(user.id).emit('force-logout', { 
+        message: 'Sesión iniciada en otro dispositivo',
+        deviceName: deviceName || 'Desconocido'
+      });
+
+      // 2. Vía FCM (Opcional, si existe token)
+      if (user.fcmToken) {
+        try {
+          const { sendNotification } = require('../utils/notifications');
+          await sendNotification(
+            user.fcmToken,
+            'Nueva sesión iniciada',
+            `Se ha iniciado sesión desde un nuevo dispositivo (${deviceName || 'Desconocido'}). La sesión en este dispositivo ha expirado.`,
+            { type: 'SESSION_EXPIRED' }
+          );
+        } catch (error) {
+          console.error('Error sending notification:', error);
+        }
+      }
     }
 
     const sessionId = crypto.randomUUID();
