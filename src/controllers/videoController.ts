@@ -3,30 +3,11 @@ import { PrismaClient } from '@prisma/client';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { uploadCloudinary } from '../utils/cloudinary';
 
 const prisma = new PrismaClient();
 
-// Multer storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = 'uploads/videos';
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, `video-${uniqueSuffix}${path.extname(file.originalname)}`);
-    }
-});
-
-export const upload = multer({
-    storage: storage,
-    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('video/')) cb(null, true);
-        else cb(new Error('Only video files are allowed'));
-    }
-});
+export const upload = uploadCloudinary;
 
 export const uploadVideo = async (req: any, res: Response) => {
     try {
@@ -37,7 +18,7 @@ export const uploadVideo = async (req: any, res: Response) => {
         const video = await prisma.video.create({
             data: {
                 userId,
-                videoUrl: `/uploads/videos/${req.file.filename}`,
+                videoUrl: req.file.path, // Cloudinary URL
                 title: title || '',
                 description: description || '',
                 thumbnailUrl: '', // Generated on frontend or via ffmpeg later
@@ -49,17 +30,42 @@ export const uploadVideo = async (req: any, res: Response) => {
     }
 };
 
-export const getFeedVideos = async (req: Request, res: Response) => {
+export const getFeedVideos = async (req: any, res: Response) => {
     try {
+        const userId = req.userId;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+
         const videos = await prisma.video.findMany({
+            skip,
+            take: limit,
             include: {
                 user: { select: { id: true, name: true, alias: true, photo: true } },
-                likes: true,
-                favorites: true
+                likes: { where: { userId: userId || '' } },
+                favorites: { where: { userId: userId || '' } }
             },
             orderBy: { createdAt: 'desc' }
         });
-        res.json(videos);
+
+        // Map isFollowing for each user
+        const following = userId ? await prisma.follow.findMany({
+            where: { followerId: userId },
+            select: { followingId: true }
+        }) : [];
+        const followingIds = new Set(following.map(f => f.followingId));
+
+        const mappedVideos = videos.map(v => ({
+            ...v,
+            isLiked: v.likes.length > 0,
+            isFavorite: v.favorites.length > 0,
+            user: {
+                ...v.user,
+                isFollowing: followingIds.has(v.user.id)
+            }
+        }));
+
+        res.json(mappedVideos);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching feed', error });
     }
@@ -151,15 +157,36 @@ export const trackInteraction = async (req: any, res: Response) => {
 export const getFollowersFeed = async (req: any, res: Response) => {
     try {
         const userId = req.userId;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+
         const following = await prisma.follow.findMany({ where: { followerId: userId } });
         const followingIds = following.map(f => f.followingId);
         
         const videos = await prisma.video.findMany({
             where: { userId: { in: followingIds } },
-            include: { user: { select: { id: true, name: true, alias: true, photo: true } } },
+            skip,
+            take: limit,
+            include: { 
+                user: { select: { id: true, name: true, alias: true, photo: true } },
+                likes: { where: { userId } },
+                favorites: { where: { userId } }
+            },
             orderBy: { createdAt: 'desc' }
         });
-        res.json(videos);
+
+        const mappedVideos = videos.map(v => ({
+            ...v,
+            isLiked: v.likes.length > 0,
+            isFavorite: v.favorites.length > 0,
+            user: {
+                ...v.user,
+                isFollowing: true // By definition in this feed
+            }
+        }));
+
+        res.json(mappedVideos);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching followers feed', error });
     }

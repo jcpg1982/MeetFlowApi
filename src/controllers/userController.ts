@@ -16,9 +16,11 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const getProfile = async (req: any, res: Response) => {
   try {
-    const userId = req.userId;
+    const requesterId = req.userId;
+    const targetId = req.params.id || requesterId;
+
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: targetId },
       select: { 
         id: true, 
         name: true, 
@@ -35,18 +37,34 @@ export const getProfile = async (req: any, res: Response) => {
       }
     });
 
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     const videos = await prisma.video.findMany({
-      where: { userId },
+      where: { userId: targetId },
       select: { likeCount: true }
     });
 
     const totalLikes = videos.reduce((sum, v) => sum + (v.likeCount || 0), 0);
 
+    let isFollowing = false;
+    if (requesterId !== targetId) {
+      const follow = await prisma.follow.findUnique({
+        where: {
+          followerId_followingId: { followerId: requesterId, followingId: targetId }
+        }
+      });
+      isFollowing = !!follow;
+    }
+
     res.json({
       ...user,
+      uuid: user.id, // Ensure uuid mapping for KMP
       followersCount: user?._count.followers || 0,
       followingCount: user?._count.following || 0,
-      likesCount: totalLikes
+      likesCount: totalLikes,
+      isFollowing: isFollowing
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching profile', error });

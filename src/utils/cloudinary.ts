@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
-import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import multer from 'multer';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,11 +10,15 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'meetflow',
-    resource_type: 'auto', // supports images and videos
-  } as any,
+  params: async (req, file) => {
+    return {
+      folder: 'meetflow',
+      resource_type: 'auto', // Important for videos
+      allowed_formats: ['jpg', 'png', 'mp4', 'mov'],
+      public_id: `file-${Date.now()}`
+    };
+  },
 });
 
-export const upload = multer({ storage: storage });
+export const uploadCloudinary = multer({ storage: storage });
 export { cloudinary };
