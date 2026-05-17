@@ -4,6 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { uploadCloudinary } from '../utils/cloudinary';
+import { io } from '../index';
 
 const prisma = new PrismaClient();
 
@@ -95,11 +96,23 @@ export const toggleLike = async (req: any, res: Response) => {
 
         if (existing) {
             await prisma.like.delete({ where: { id: existing.id } });
-            await prisma.video.update({ where: { id: videoId }, data: { likeCount: { decrement: 1 } } });
+            // Also remove favorite
+            await prisma.favoriteVideo.deleteMany({ where: { videoId, userId } });
+            
+            const updated = await prisma.video.update({ where: { id: videoId }, data: { likeCount: { decrement: 1 } } });
+            io.emit('video_stats_update', { videoId, likeCount: updated.likeCount });
             return res.json({ liked: false });
         } else {
             await prisma.like.create({ data: { videoId, userId } });
-            await prisma.video.update({ where: { id: videoId }, data: { likeCount: { increment: 1 } } });
+            
+            // Also add favorite
+            const favExists = await prisma.favoriteVideo.findFirst({ where: { videoId, userId } });
+            if (!favExists) {
+                await prisma.favoriteVideo.create({ data: { videoId, userId } });
+            }
+
+            const updated = await prisma.video.update({ where: { id: videoId }, data: { likeCount: { increment: 1 } } });
+            io.emit('video_stats_update', { videoId, likeCount: updated.likeCount });
             return res.json({ liked: true });
         }
     } catch (error) {
@@ -147,7 +160,8 @@ export const trackInteraction = async (req: any, res: Response) => {
         await prisma.videoInteraction.create({
             data: { videoId, userId, watchTime, isCompleted }
         });
-        await prisma.video.update({ where: { id: videoId }, data: { viewCount: { increment: 1 } } });
+        const updated = await prisma.video.update({ where: { id: videoId }, data: { viewCount: { increment: 1 } } });
+        io.emit('video_stats_update', { videoId, viewCount: updated.viewCount });
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ message: 'Error tracking interaction', error });
