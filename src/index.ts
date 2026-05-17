@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import videoRoutes from './routes/videoRoutes';
 import requestRoutes from './routes/requestRoutes';
+import callRoutes from './routes/callRoutes';
 import { setupSignaling } from './utils/signaling';
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/calls', callRoutes);
 
 app.get('/', (req, res) => {
   res.send('MeetFlow API with Signaling is running...');

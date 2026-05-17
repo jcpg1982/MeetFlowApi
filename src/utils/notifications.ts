@@ -5,9 +5,27 @@ if (!admin.apps.length) {
   try {
     // You should place your service account file in the root or use env variables
     // For Render, it's better to use an environment variable with the JSON string
-    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-      : require('../../firebase-service-account.json');
+    let serviceAccount;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+      const fs = require('fs');
+      const path = require('path');
+      
+      const debugPath = path.resolve(__dirname, '../../firebase-service-account-debug.json');
+      const releasePath = path.resolve(__dirname, '../../firebase-service-account-release.json');
+      const defaultPath = path.resolve(__dirname, '../../firebase-service-account.json');
+      
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      if (isProduction && fs.existsSync(releasePath)) {
+        serviceAccount = require(releasePath);
+      } else if (!isProduction && fs.existsSync(debugPath)) {
+        serviceAccount = require(debugPath);
+      } else {
+        serviceAccount = require(defaultPath);
+      }
+    }
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)

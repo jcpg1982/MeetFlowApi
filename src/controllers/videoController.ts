@@ -157,12 +157,38 @@ export const trackInteraction = async (req: any, res: Response) => {
     try {
         const { videoId, watchTime, isCompleted } = req.body;
         const userId = req.userId;
+
+        // 1. Check if this user has already interacted with this video in the last 24 hours
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const existingInteraction = await prisma.videoInteraction.findFirst({
+            where: {
+                userId,
+                videoId,
+                createdAt: {
+                    gte: oneDayAgo
+                }
+            }
+        });
+
+        // 2. Create the interaction record in the database for watch time analytics
         await prisma.videoInteraction.create({
             data: { videoId, userId, watchTime, isCompleted }
         });
-        const updated = await prisma.video.update({ where: { id: videoId }, data: { viewCount: { increment: 1 } } });
-        io.emit('video_stats_update', { videoId, viewCount: updated.viewCount });
-        res.json({ success: true });
+
+        let viewCount = undefined;
+        if (!existingInteraction) {
+            // Only increment global video view count if this is a unique view in a 24h rolling window
+            const updated = await prisma.video.update({
+                where: { id: videoId },
+                data: { viewCount: { increment: 1 } }
+            });
+            viewCount = updated.viewCount;
+
+            // Broadcast stats update in real-time
+            io.emit('video_stats_update', { videoId, viewCount });
+        }
+
+        res.json({ success: true, isUniqueView: !existingInteraction, viewCount });
     } catch (error) {
         res.status(500).json({ message: 'Error tracking interaction', error });
     }
