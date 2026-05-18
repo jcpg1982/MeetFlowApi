@@ -5,6 +5,24 @@ import { io } from '../index';
 
 const prisma = new PrismaClient();
 
+// Keep track of busy users in an in-memory set
+export const busyUsers = new Set<string>();
+// Keep track of active calls (userId -> peerUserId)
+export const activeCalls = new Map<string, string>();
+
+export const checkUserStatus = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        if (typeof userId !== 'string') {
+            return res.status(400).json({ message: 'Invalid userId' });
+        }
+        const isBusy = busyUsers.has(userId);
+        res.status(200).json({ userId, isBusy });
+    } catch (error) {
+        res.status(500).json({ message: 'Error checking user status', error });
+    }
+};
+
 export const initiateCall = async (req: any, res: Response) => {
     try {
         const callerId = req.userId;
@@ -12,6 +30,10 @@ export const initiateCall = async (req: any, res: Response) => {
 
         if (!receiverId) {
             return res.status(400).json({ message: 'Receiver ID is required' });
+        }
+
+        if (busyUsers.has(receiverId)) {
+            return res.status(400).json({ message: 'USER_BUSY' });
         }
 
         const caller = await prisma.user.findUnique({ where: { id: callerId } });
@@ -28,6 +50,13 @@ export const initiateCall = async (req: any, res: Response) => {
         const isReceiverOnline = socketsInRoom !== undefined && socketsInRoom.size > 0;
 
         if (receiver.fcmToken || isReceiverOnline || receiver.name === 'Test' || process.env.NODE_ENV !== 'production') {
+            
+            // Mark both users as busy
+            busyUsers.add(callerId);
+            busyUsers.add(receiverId);
+            activeCalls.set(callerId, receiverId);
+            activeCalls.set(receiverId, callerId);
+
             // Emit socket event for real-time instantaneous delivery
             io.to(receiverId).emit('incoming-call', {
                 callerId: caller.id,
@@ -105,6 +134,13 @@ export const respondToCall = async (req: any, res: Response) => {
             status: status
         });
 
+        if (status === 'rejected') {
+            busyUsers.delete(callerId);
+            busyUsers.delete(responderId);
+            activeCalls.delete(callerId);
+            activeCalls.delete(responderId);
+        }
+
         if (caller.fcmToken) {
             const message = {
                 token: caller.fcmToken,
@@ -116,11 +152,40 @@ export const respondToCall = async (req: any, res: Response) => {
                 android: { priority: 'high' as const }
             };
             const admin = require('firebase-admin');
-            await admin.messaging().send(message);
+            try {
+                await admin.messaging().send(message);
+            } catch (err) {
+                console.error('Error sending FCM CALL_RESPONSE:', err);
+            }
         }
 
         res.status(200).json({ message: `Call ${status}` });
     } catch (error) {
         res.status(500).json({ message: 'Error responding to call', error });
+    }
+};
+
+export const logCall = async (req: any, res: Response) => {
+    try {
+        const callerId = req.userId;
+        const { receiverId, status, isIncoming } = req.body;
+
+        if (!receiverId || !status) {
+            return res.status(400).json({ message: 'Receiver ID and status are required' });
+        }
+
+        const log = await prisma.callLog.create({
+            data: {
+                callerId: callerId,
+                receiverId: receiverId,
+                status: status,
+                isIncoming: isIncoming === true
+            }
+        });
+
+        res.status(200).json({ message: 'Call logged successfully', log });
+    } catch (error) {
+        console.error('Error logging call:', error);
+        res.status(500).json({ message: 'Error logging call', error });
     }
 };

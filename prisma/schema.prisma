@@ -110,4 +110,13 @@ model Like {
   @@unique([videoId, userId])
 }
 
+model CallLog {
+  id         String   @id @default(uuid())
+  callerId   String
+  receiverId String
+  status     String   // MADE, ANSWERED, DECLINED, ENDED, BUSY, MISSED
+  isIncoming Boolean
+  createdAt  DateTime @default(now())
+}
+
 
