@@ -1,12 +1,10 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../prisma';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { uploadCloudinary } from '../utils/cloudinary';
 import { io } from '../index';
-
-const prisma = new PrismaClient();
 
 export const upload = uploadCloudinary;
 

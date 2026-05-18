@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../prisma';
 import { sendNotification } from '../utils/notifications';
 import { io } from '../index';
-
-const prisma = new PrismaClient();
 
 // Keep track of busy users in an in-memory set
 export const busyUsers = new Set<string>();

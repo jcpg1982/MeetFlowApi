@@ -1,6 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import http from 'http';
 import { Server } from 'socket.io';
 import authRoutes from './routes/authRoutes';
@@ -9,8 +11,6 @@ import videoRoutes from './routes/videoRoutes';
 import requestRoutes from './routes/requestRoutes';
 import callRoutes from './routes/callRoutes';
 import { setupSignaling } from './utils/signaling';
-
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
