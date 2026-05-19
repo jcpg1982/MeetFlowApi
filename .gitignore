@@ -4,3 +4,6 @@ dist/
 *.log
 firebase-service-account.json
 .vscode/
+uploads/
+run_api.bat
+DEPLOY_RENDER.md
