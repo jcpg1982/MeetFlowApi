@@ -95,18 +95,6 @@ export const initiateCall = async (req: any, res: Response) => {
                 }
             }
 
-            // SIMULATE AUTOMATIC ACCEPTANCE FOR THE 'Test' MOCK USER AFTER 3 SECONDS
-            if (receiver.name === 'Test' && !isReceiverOnline) {
-                console.log(`[SIMULATOR] Simulating auto-acceptance for Test user in 3 seconds to caller ${callerId}...`);
-                setTimeout(() => {
-                    io.to(callerId).emit('call-responded', {
-                        responderId: receiver.id,
-                        status: 'accepted'
-                    });
-                    console.log(`[SIMULATOR] Auto-acceptance emitted to caller ${callerId}!`);
-                }, 3000);
-            }
-
             res.status(200).json({ message: 'Call initiated', roomId: roomId });
         } else {
             // Receiver is offline on sockets AND doesn't have an FCM token
