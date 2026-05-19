@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeetFlow - Conexiones Fluidas y Reuniones Inteligentes</title>
+  
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- CSS Styling (Premium Dark Glassmorphic Theme) -->
+  <style>
+    :root {
+      --bg-color: #0d0f12;
+      --text-color: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary-neon: #00f2fe;
+      --secondary-neon: #9b51e0;
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-hover: rgba(255, 255, 255, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background Glows */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      top: -100px;
+      right: -100px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      bottom: -150px;
+      left: -150px;
+      background: radial-gradient(circle, rgba(155, 81, 224, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Header Styling */
+    header {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background-color: rgba(13, 15, 18, 0.7);
+      border-bottom: 1px border var(--glass-border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #000;
+      font-size: 1.1rem;
+    }
+
+    .logo-text {
+      font-weight: 700;
+      font-size: 1.3rem;
+      background: linear-gradient(to right, #ffffff, #c7d2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    nav {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--text-color);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    /* Language Switcher Button */
+    .lang-btn {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-color);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .lang-btn:hover {
+      background: var(--glass-hover);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Tab Animation and Views */
+    .view-content {
+      display: none;
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    .view-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Home View Elements */
+    .hero-section {
+      text-align: center;
+      padding: 3rem 0;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-title span {
+      background: linear-gradient(to right, var(--primary-neon), var(--secondary-neon));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.6;
+    }
+
+    .glass-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 3rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.03), rgba(155, 81, 224, 0.03));
+      pointer-events: none;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.015);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: left;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      background: var(--glass-hover);
+      border-color: rgba(0, 242, 254, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Policy Documents Styling */
+    .document-body {
+      line-height: 1.7;
+      font-size: 1rem;
+      color: #e5e7eb;
+    }
+
+    .document-body h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff, #c7d2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .document-body h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      color: #ffffff;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .document-body p {
+      margin-bottom: 1.25rem;
+      color: #d1d5db;
+    }
+
+    .document-body ul {
+      margin-left: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .document-body li {
+      margin-bottom: 0.5rem;
+      color: #d1d5db;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--glass-border);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: auto;
+      background-color: rgba(13, 15, 18, 0.5);
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-color);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .hero-title {
+        font-size: 2.5rem;
+      }
+      .glass-card {
+        padding: 1.5rem;
+      }
+      .footer-links {
+        flex-direction: column;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Premium Header -->
+  <header>
+    <div class="logo-container" onclick="navigateTo('/')">
+      <div class="logo-icon">M</div>
+      <div class="logo-text">MeetFlow</div>
+    </div>
+    
+    <nav id="nav-links">
+      <a onclick="navigateTo('/')" id="nav-home" class="active">Inicio</a>
+      <a onclick="navigateTo('/privacy')" id="nav-privacy">Privacidad</a>
+      <a onclick="navigateTo('/terms')" id="nav-terms">Términos</a>
+      <button class="lang-btn" onclick="toggleLanguage()" id="lang-toggle-btn">
+        🌐 English
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Content Space -->
+  <main>
+    
+    <!-- ================= HOME VIEW ================= -->
+    <div id="view-home" class="view-content active">
+      <div class="hero-section">
+        <h1 class="hero-title" id="home-title">Videollamadas Fluidas y<br><span>Reuniones Inteligentes</span></h1>
+        <p class="hero-subtitle" id="home-subtitle">La solución multiplataforma completa para agendar citas profesionales y comunicarte al instante con video de alta definición (WebRTC).</p>
+      </div>
+
+      <div class="glass-card">
+        <h2 style="text-align: center; margin-bottom: 2rem;" id="features-title">¿Por qué elegir MeetFlow?</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">📞</div>
+            <h3 id="feat1-title">Videollamadas Realistas P2P</h3>
+            <p id="feat1-desc">Comunícate directamente a través de flujos P2P impulsados por WebRTC nativo para una latencia mínima y máxima calidad de video.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📅</div>
+            <h3 id="feat2-title">Agenda Integrada</h3>
+            <p id="feat2-desc">Configura tus horarios y permite que tus clientes reserven citas directamente sin fricción de correos o chats.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔔</div>
+            <h3 id="feat3-title">Notificaciones Push</h3>
+            <p id="feat3-desc">Recibe avisos inmediatos en tu celular gracias a Firebase Cloud Messaging para que no te pierdas ninguna llamada importante.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PRIVACY VIEW ================= -->
+    <div id="view-privacy" class="view-content">
+      <div class="glass-card document-body" id="privacy-body">
+        <!-- Content will be injected dynamically according to active language -->
+      </div>
+    </div>
+
+    <!-- ================= TERMS VIEW ================= -->
+    <div id="view-terms" class="view-content">
+      <div class="glass-card document-body" id="terms-body">
+        <!-- Content will be injected dynamically according to active language -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a onclick="navigateTo('/')" id="footer-home">Inicio</a>
+      <a onclick="navigateTo('/privacy')" id="footer-privacy">Política de Privacidad</a>
+      <a onclick="navigateTo('/terms')" id="footer-terms">Términos de Servicio</a>
+    </div>
+    <p>&copy; <span id="current-year"></span> MeetFlow. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- Translation Objects & SPA Logic Script -->
+  <script>
+    // Set Year
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+
+    // Active Language (en or es)
+    let currentLang = 'es';
+
+    // Text Collections for Translation
+    const texts = {
+      es: {
+        toggleBtn: "🌐 English",
+        navHome: "Inicio",
+        navPrivacy: "Privacidad",
+        navTerms: "Términos",
+        footerHome: "Inicio",
+        footerPrivacy: "Política de Privacidad",
+        footerTerms: "Términos de Servicio",
+        homeTitle: 'Videollamadas Fluidas y<br><span>Reuniones Inteligentes</span>',
+        homeSubtitle: 'La solución multiplataforma completa para agendar citas profesionales y comunicarte al instante con video de alta definición (WebRTC).',
+        featuresTitle: '¿Por qué elegir MeetFlow?',
+        feat1Title: 'Videollamadas Realistas P2P',
+        feat1Desc: 'Comunícate directamente a través de flujos P2P impulsados por WebRTC nativo para una latencia mínima y máxima calidad de video.',
+        feat2Title: 'Agenda Integrada',
+        feat2Desc: 'Configura tus horarios y permite que tus clientes reserven citas directamente sin fricción de correos o chats.',
+        feat3Title: 'Notificaciones Push',
+        feat3Desc: 'Recibe avisos inmediatos en tu celular gracias a Firebase Cloud Messaging para que no te pierdas ninguna llamada importante.',
+        privacyContent: `
+          <h1>Política de Privacidad</h1>
+          <p><strong>Última actualización: 19 de Mayo de 2026</strong></p>
+          <p>En MeetFlow, nos tomamos muy en serio tu privacidad. Esta política de privacidad describe cómo recopilamos, utilizamos y protegemos tu información cuando utilizas nuestra aplicación móvil y nuestra plataforma web.</p>
+          
+          <h2>1. Información que recopilamos</h2>
+          <p>Para proporcionarte una experiencia fluida y de alta calidad, recopilamos las siguientes categorías de información:</p>
+          <ul>
+            <li><strong>Información de Registro:</strong> Nombre, correo electrónico, alias, contraseña encriptada y foto de perfil opcional.</li>
+            <li><strong>Identificadores de Dispositivo:</strong> Guardamos el identificador del dispositivo y el token de notificaciones push (FCM) únicamente para enviarte alertas de llamadas entrantes y recordatorios.</li>
+            <li><strong>Datos de llamadas y streaming:</strong> No almacenamos ni grabamos tus transmisiones de audio o video. Las llamadas de WebRTC se realizan mediante conexiones seguras punto a punto (P2P).</li>
+          </ul>
+
+          <h2>2. Uso de tu Información</h2>
+          <p>Utilizamos tu información exclusivamente para los siguientes fines:</p>
+          <ul>
+            <li>Autenticar y administrar tus sesiones de usuario seguras de manera exclusiva en un único dispositivo.</li>
+            <li>Gestionar el agendamiento y precio de citas entre usuarios y prestadores de servicio.</li>
+            <li>Establecer conexiones de video y audio para llamadas mediante señalización WebRTC.</li>
+            <li>Enviar alertas push de llamadas entrantes y estados de citas.</li>
+          </ul>
+
+          <h2>3. Almacenamiento y Protección de Datos</h2>
+          <p>Toda tu información se almacena de forma segura en bases de datos con cifrado estándar y tecnologías en la nube protegidas. No compartimos, vendemos ni alquilamos tus datos personales con terceros bajo ningún concepto, salvo en cumplimiento estricto con las obligaciones legales aplicables.</p>
+
+          <h2>4. Derechos del Usuario</h2>
+          <p>Tienes total derecho a acceder, rectificar o solicitar la eliminación definitiva de tus datos personales enviando una solicitud directamente a nuestro sistema en cualquier momento.</p>
+        `,
+        termsContent: `
+          <h1>Términos y Condiciones de Servicio</h1>
+          <p><strong>Última actualización: 19 de Mayo de 2026</strong></p>
+          <p>Por favor, lee detalladamente estos términos de servicio antes de utilizar MeetFlow. Al acceder o utilizar nuestra plataforma, aceptas estar sujeto a estos términos.</p>
+          
+          <h2>1. Uso del Servicio</h2>
+          <p>MeetFlow te ofrece una plataforma para realizar videollamadas privadas punto a punto y la programación de citas virtuales. Eres responsable de mantener la confidencialidad de tus credenciales de acceso y de cualquier actividad en tu cuenta.</p>
+
+          <h2>2. Políticas de Seguridad de Cuentas</h2>
+          <p>Para resguardar la seguridad del servicio, MeetFlow implementa una política estricta de <strong>Dispositivo Único por sesión</strong>. Esto implica que no podrás mantener sesiones activas simultáneamente en varios teléfonos inteligentes. Iniciar sesión en un nuevo dispositivo cerrará automáticamente la sesión del dispositivo anterior.</p>
+
+          <h2>3. Conducta Aceptable</h2>
+          <p>Te comprometes a utilizar MeetFlow de forma ética y conforme a la ley. Queda estrictamente prohibido:</p>
+          <ul>
+            <li>Utilizar la plataforma para acoso, amenazas, difamación o transmisiones indecentes.</li>
+            <li>Hacer ingeniería inversa o interferir con la señalización e infraestructura de las videollamadas.</li>
+            <li>Interrumpir o dañar el servicio mediante inyecciones de código o ataques cibernéticos.</li>
+          </ul>
+
+          <h2>4. Limitación de Responsabilidad</h2>
+          <p>MeetFlow se provee "tal cual" y "según disponibilidad". No nos hacemos responsables de posibles fallos de conectividad inherentes a los servicios de red de Internet de los usuarios o de cortes temporales en la señalización P2P.</p>
+        `
+      },
+      en: {
+        toggleBtn: "🌐 Español",
+        navHome: "Home",
+        navPrivacy: "Privacy",
+        navTerms: "Terms",
+        footerHome: "Home",
+        footerPrivacy: "Privacy Policy",
+        footerTerms: "Terms of Service",
+        homeTitle: 'Smooth Video Calls and<br><span>Smart Meetings</span>',
+        homeSubtitle: 'The complete multiplatform solution to schedule professional meetings and connect instantly with high-definition video calls (WebRTC).',
+        featuresTitle: 'Why choose MeetFlow?',
+        feat1Title: 'Realistic P2P Video Calls',
+        feat1Desc: 'Connect directly via P2P streams powered by native WebRTC for minimal latency and maximum video quality.',
+        feat2Title: 'Integrated Scheduling',
+        feat2Desc: 'Set your available hours and let your clients book meetings directly without the friction of endless emails or chats.',
+        feat3Title: 'Push Notifications',
+        feat3Desc: 'Receive immediate alerts on your mobile device powered by Firebase Cloud Messaging so you never miss an important call.',
+        privacyContent: `
+          <h1>Privacy Policy</h1>
+          <p><strong>Last updated: May 19, 2026</strong></p>
+          <p>At MeetFlow, we take your privacy very seriously. This privacy policy describes how we collect, use, and protect your information when you use our mobile application and our web platform.</p>
+          
+          <h2>1. Information We Collect</h2>
+          <p>To provide you with a smooth and high-quality experience, we collect the following categories of information:</p>
+          <ul>
+            <li><strong>Registration Data:</strong> Name, email address, alias, encrypted password, and optional profile picture.</li>
+            <li><strong>Device Identifiers:</strong> We store device identifiers and push notification tokens (FCM) solely to send you incoming call alerts and meeting reminders.</li>
+            <li><strong>Call & Streaming Data:</strong> We do not store, record, or intercept your audio or video streams. WebRTC calls are established via secure peer-to-peer (P2P) connections.</li>
+          </ul>
+
+          <h2>2. How We Use Your Information</h2>
+          <p>We use your information exclusively for the following purposes:</p>
+          <ul>
+            <li>To authenticate and manage your secure sessions exclusively on a single active device.</li>
+            <li>To manage schedules and meeting rates between users and service providers.</li>
+            <li>To establish audio and video connections for calls via WebRTC signaling.</li>
+            <li>To send push alerts for incoming calls and scheduled meeting status changes.</li>
+          </ul>
+
+          <h2>3. Data Protection and Storage</h2>
+          <p>All your information is safely stored in databases secured with standard encryption and protected cloud technologies. We do not share, sell, or rent your personal data to third parties under any circumstances, except in strict compliance with applicable legal obligations.</p>
+
+          <h2>4. User Rights</h2>
+          <p>You have full rights to access, rectify, or request the permanent deletion of your personal data by sending a request directly to our system at any time.</p>
+        `,
+        termsContent: `
+          <h1>Terms and Conditions of Service</h1>
+          <p><strong>Last updated: May 19, 2026</strong></p>
+          <p>Please read these terms of service carefully before using MeetFlow. By accessing or using our platform, you agree to be bound by these terms.</p>
+          
+          <h2>1. Use of the Service</h2>
+          <p>MeetFlow provides you with a platform for holding private peer-to-peer video calls and scheduling virtual appointments. You are responsible for maintaining the confidentiality of your login credentials and for any activity under your account.</p>
+
+          <h2>2. Account Security Policies</h2>
+          <p>To ensure account security, MeetFlow enforces a strict <strong>Single Active Device</strong> session policy. This means you cannot maintain active sessions simultaneously on multiple smartphones. Logging in on a new device will automatically terminate the active session on your previous device.</p>
+
+          <h2>3. Acceptable Conduct</h2>
+          <p>You agree to use MeetFlow ethically and in compliance with the law. You are strictly prohibited from:</p>
+          <ul>
+            <li>Using the platform for harassment, threats, defamation, or indecent transmissions.</li>
+            <li>Reverse engineering or interfering with our video call signaling and infrastructure.</li>
+            <li>Disrupting or harming the service via code injections or cyberattacks.</li>
+          </ul>
+
+          <h2>4. Limitation of Liability</h2>
+          <p>MeetFlow is provided on an "as is" and "as available" basis. We are not liable for connection failures inherent to users' internet services or temporary drops in WebRTC P2P signaling.</p>
+        `
+      }
+    };
+
+    // Auto-detect browser language
+    function detectLanguage() {
+      const browserLang = navigator.language || navigator.userLanguage;
+      if (browserLang && browserLang.toLowerCase().startsWith('en')) {
+        currentLang = 'en';
+      } else {
+        currentLang = 'es';
+      }
+      applyTranslations();
+    }
+
+    // Toggle Language
+    function toggleLanguage() {
+      currentLang = currentLang === 'es' ? 'en' : 'es';
+      applyTranslations();
+    }
+
+    // Apply translations to DOM
+    function applyTranslations() {
+      const t = texts[currentLang];
+      
+      // Update toggle button text
+      document.getElementById('lang-toggle-btn').textContent = t.toggleBtn;
+      
+      // Update nav and footer links
+      document.getElementById('nav-home').textContent = t.navHome;
+      document.getElementById('nav-privacy').textContent = t.navPrivacy;
+      document.getElementById('nav-terms').textContent = t.navTerms;
+      
+      document.getElementById('footer-home').textContent = t.footerHome;
+      document.getElementById('footer-privacy').textContent = t.footerPrivacy;
+      document.getElementById('footer-terms').textContent = t.footerTerms;
+      
+      // Update home page text
+      document.getElementById('home-title').innerHTML = t.homeTitle;
+      document.getElementById('home-subtitle').textContent = t.homeSubtitle;
+      document.getElementById('features-title').textContent = t.featuresTitle;
+      
+      document.getElementById('feat1-title').textContent = t.feat1Title;
+      document.getElementById('feat1-desc').textContent = t.feat1Desc;
+      document.getElementById('feat2-title').textContent = t.feat2Title;
+      document.getElementById('feat2-desc').textContent = t.feat2Desc;
+      document.getElementById('feat3-title').textContent = t.feat3Title;
+      document.getElementById('feat3-desc').textContent = t.feat3Desc;
+      
+      // Inject Policy Documents
+      document.getElementById('privacy-body').innerHTML = t.privacyContent;
+      document.getElementById('terms-body').innerHTML = t.termsContent;
+
+      // Update Page Title
+      document.title = currentLang === 'es' ? "MeetFlow - Conexiones Fluidas y Reuniones Inteligentes" : "MeetFlow - Fluid Connections & Smart Meetings";
+    }
+
+    // SPA Routing Logic (History API compatible)
+    function navigateTo(path) {
+      window.history.pushState(null, '', path);
+      resolveRoute(path);
+    }
+
+    function resolveRoute(path) {
+      // Deactivate all navigation items
+      document.getElementById('nav-home').classList.remove('active');
+      document.getElementById('nav-privacy').classList.remove('active');
+      document.getElementById('nav-terms').classList.remove('active');
+
+      // Deactivate all views
+      document.getElementById('view-home').classList.remove('active');
+      document.getElementById('view-privacy').classList.remove('active');
+      document.getElementById('view-terms').classList.remove('active');
+
+      // Activate correct view and highlight menu
+      if (path === '/privacy') {
+        document.getElementById('view-privacy').classList.add('active');
+        document.getElementById('nav-privacy').classList.add('active');
+        window.scrollTo(0, 0);
+      } else if (path === '/terms') {
+        document.getElementById('view-terms').classList.add('active');
+        document.getElementById('nav-terms').classList.add('active');
+        window.scrollTo(0, 0);
+      } else {
+        document.getElementById('view-home').classList.add('active');
+        document.getElementById('nav-home').classList.add('active');
+        window.scrollTo(0, 0);
+      }
+    }
+
+    // Listen to browser forward/backward navigation
+    window.addEventListener('popstate', () => {
+      resolveRoute(window.location.pathname);
+    });
+
+    // Initialize Page
+    detectLanguage();
+    resolveRoute(window.location.pathname);
+
+  </script>
+</body>
+</html>

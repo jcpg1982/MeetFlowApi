@@ -4,6 +4,7 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
+import path from 'path';
 import { Server } from 'socket.io';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
@@ -26,6 +27,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -34,8 +36,17 @@ app.use('/api/videos', videoRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/calls', callRoutes);
 
+// Web Pages (SPA Routing)
 app.get('/', (req, res) => {
-  res.send('MeetFlow API with Signaling is running...');
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+app.get('/privacy', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+app.get('/terms', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Setup Signaling
