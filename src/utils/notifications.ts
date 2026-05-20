@@ -36,14 +36,42 @@ if (!admin.apps.length) {
   }
 }
 
-export const sendNotification = async (token: string, title: string, body: string, data?: any) => {
-  if (!token) return;
+export const sendNotification = async (target: string, title: string, body: string, data?: any) => {
+  if (!target) return;
   
-  const message = {
-    notification: { title, body },
-    data: data || {},
-    token: token
+  const message: any = {
+    data: {
+      title,
+      body,
+      ...(data || {})
+    },
+    android: {
+      priority: 'high',
+    },
+    apns: {
+      payload: {
+        aps: {
+          alert: {
+            title,
+            body
+          },
+          sound: 'default',
+          contentAvailable: true
+        }
+      },
+      headers: {
+        'apns-priority': '10'
+      }
+    }
   };
+
+  if (target.startsWith('user_')) {
+    message.topic = target;
+  } else if (target.length < 60) {
+    message.topic = `user_${target}`;
+  } else {
+    message.token = target;
+  }
 
   try {
     const response = await admin.messaging().send(message);

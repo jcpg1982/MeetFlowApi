@@ -18,15 +18,13 @@ export const createRequest = async (req: any, res: Response) => {
       }
     });
 
-    // Send Notification
-    if (request.receiver.fcmToken) {
-      await sendNotification(
-        request.receiver.fcmToken,
-        'New Meeting Request',
-        `${request.sender.name} wants to connect with you!`,
-        { requestId: request.id }
-      );
-    }
+    // Send Notification via topic
+    await sendNotification(
+      receiverId,
+      'New Meeting Request',
+      `${request.sender.name} wants to connect with you!`,
+      { requestId: request.id }
+    );
 
     res.status(201).json(request);
   } catch (error) {

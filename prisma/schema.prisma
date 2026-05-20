@@ -30,6 +30,8 @@ model User {
   following        Follow[]         @relation("Following")
   favorites        FavoriteVideo[]
   likes            Like[]
+  sentMessages     Message[]        @relation("SentMessages")
+  receivedMessages Message[]        @relation("ReceivedMessages")
 }
 
 model MeetingRequest {
@@ -117,5 +119,21 @@ model CallLog {
   isIncoming Boolean
   createdAt  DateTime @default(now())
 }
+
+model Message {
+  id              String   @id @default(uuid())
+  senderId        String
+  receiverId      String
+  type            String   // TEXT, PHOTO, VIDEO, AUDIO
+  content         String?  // Text content if type is TEXT
+  mediaUrl        String?  // Cloudinary URL if PHOTO, VIDEO, or AUDIO
+  durationSeconds Int?     // Duration in seconds for audio/video notes
+  status          String   @default("SENT") // SENT, READ
+  createdAt       DateTime @default(now())
+
+  sender          User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver        User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
 
 

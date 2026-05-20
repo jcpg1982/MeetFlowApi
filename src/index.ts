@@ -11,6 +11,7 @@ import userRoutes from './routes/userRoutes';
 import videoRoutes from './routes/videoRoutes';
 import requestRoutes from './routes/requestRoutes';
 import callRoutes from './routes/callRoutes';
+import chatRoutes from './routes/chatRoutes';
 import { setupSignaling } from './utils/signaling';
 
 const app = express();
@@ -35,6 +36,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/calls', callRoutes);
+app.use('/api/chat', chatRoutes);
+
 
 // Web Pages (SPA Routing)
 app.get('/', (req, res) => {

@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { uploadCloudinary } from '../utils/cloudinary';
 import { io } from '../index';
+import { sendNotification } from '../utils/notifications';
 
 export const upload = uploadCloudinary;
 
@@ -111,6 +112,34 @@ export const toggleLike = async (req: any, res: Response) => {
 
             const updated = await prisma.video.update({ where: { id: videoId }, data: { likeCount: { increment: 1 } } });
             io.emit('video_stats_update', { videoId, likeCount: updated.likeCount });
+
+            // Send video liked notification via topic
+            try {
+                const [liker, video] = await Promise.all([
+                    prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
+                    prisma.video.findUnique({
+                        where: { id: videoId },
+                        include: { user: { select: { id: true } } }
+                    })
+                ]);
+
+                if (video?.user && video.user.id !== userId) {
+                    await sendNotification(
+                        video.user.id,
+                        'Me Gusta',
+                        `A ${liker?.name || 'Un usuario'} le gustó tu video`,
+                        {
+                            type: 'VIDEO_LIKE',
+                            likerId: userId,
+                            likerName: liker?.name || 'Usuario',
+                            videoId: videoId
+                        }
+                    );
+                }
+            } catch (likeError) {
+                console.error('Error sending video like notification:', likeError);
+            }
+
             return res.json({ liked: true });
         }
     } catch (error) {

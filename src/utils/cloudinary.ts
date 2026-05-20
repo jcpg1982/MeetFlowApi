@@ -14,7 +14,6 @@ const storage = new CloudinaryStorage({
     return {
       folder: 'meetflow',
       resource_type: 'auto', // Important for videos
-      allowed_formats: ['jpg', 'png', 'mp4', 'mov'],
       public_id: `file-${Date.now()}`
     };
   },

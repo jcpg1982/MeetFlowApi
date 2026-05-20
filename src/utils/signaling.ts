@@ -1,8 +1,8 @@
 import { Server } from 'socket.io';
 import { busyUsers, activeCalls } from '../controllers/callController';
 
-const socketToUserMap = new Map<string, string>();
-const userToSocketMap = new Map<string, string>();
+export const socketToUserMap = new Map<string, string>();
+export const userToSocketMap = new Map<string, string>();
 
 export const setupSignaling = (io: Server) => {
   io.on('connection', (socket) => {
@@ -13,6 +13,7 @@ export const setupSignaling = (io: Server) => {
       socketToUserMap.set(socket.id, userId);
       userToSocketMap.set(userId, socket.id);
       console.log(`User ${userId} joined room ${userId}`);
+      io.emit('presence_changed', { userId, status: 'online' });
     });
 
     socket.on('offer', ({ to, offer }) => {
@@ -60,6 +61,7 @@ export const setupSignaling = (io: Server) => {
         // Only delete from userToSocketMap if it still points to the disconnected socket.id
         if (userToSocketMap.get(userId) === socket.id) {
           userToSocketMap.delete(userId);
+          io.emit('presence_changed', { userId, status: 'offline' });
         }
 
         // If user was in an active call, notify the other participant after a grace period
