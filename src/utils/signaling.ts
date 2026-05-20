@@ -55,18 +55,34 @@ export const setupSignaling = (io: Server) => {
       console.log('User disconnected:', socket.id, 'Reason:', reason);
       const userId = socketToUserMap.get(socket.id);
       if (userId) {
-        busyUsers.delete(userId);
-        userToSocketMap.delete(userId);
         socketToUserMap.delete(socket.id);
+        
+        // Only delete from userToSocketMap if it still points to the disconnected socket.id
+        if (userToSocketMap.get(userId) === socket.id) {
+          userToSocketMap.delete(userId);
+        }
 
-        // If user was in an active call, notify the other participant
+        // If user was in an active call, notify the other participant after a grace period
         const peerId = activeCalls.get(userId);
         if (peerId) {
-          console.log(`Abrupt disconnect of ${userId}, sending call-hungup to peer ${peerId}`);
-          io.to(peerId).emit('call-hungup', { from: socket.id });
-          busyUsers.delete(peerId);
-          activeCalls.delete(userId);
-          activeCalls.delete(peerId);
+          console.log(`Abrupt disconnect of ${userId}. Starting 10s grace period...`);
+          setTimeout(() => {
+            // Check if the user has reconnected (which updates userToSocketMap)
+            const currentSocketId = userToSocketMap.get(userId);
+            if (!currentSocketId) {
+              console.log(`User ${userId} did not reconnect within grace period. Terminating call...`);
+              io.to(peerId).emit('call-hungup', { from: socket.id });
+              busyUsers.delete(userId);
+              busyUsers.delete(peerId);
+              activeCalls.delete(userId);
+              activeCalls.delete(peerId);
+            } else {
+              console.log(`User ${userId} reconnected (new socket: ${currentSocketId}). Keeping call active.`);
+            }
+          }, 10000); // 10 seconds grace period
+        } else {
+          // If not in a call, we can clean up busyUsers immediately
+          busyUsers.delete(userId);
         }
       }
     });

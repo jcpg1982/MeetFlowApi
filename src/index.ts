@@ -54,4 +54,17 @@ setupSignaling(io);
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  
+  // Keep-alive self-pinging to prevent Render free tier from sleeping
+  const SELF_URL = process.env.SELF_URL || 'https://meetflowapi.onrender.com';
+  setInterval(() => {
+    const url = `${SELF_URL}/api/auth/health`;
+    console.log(`[Keep-Alive] Pinging self at ${url}...`);
+    const httpModule = url.startsWith('https') ? require('https') : require('http');
+    httpModule.get(url, (res: any) => {
+      console.log(`[Keep-Alive] Ping response status: ${res.statusCode}`);
+    }).on('error', (err: any) => {
+      console.error(`[Keep-Alive] Ping failed:`, err.message);
+    });
+  }, 10 * 60 * 1000); // every 10 minutes
 });
