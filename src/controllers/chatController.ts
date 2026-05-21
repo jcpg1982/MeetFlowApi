@@ -177,7 +177,7 @@ export const getConversations = async (req: any, res: Response) => {
 
                     conversationsMap.set(partnerId, {
                         user: {
-                            id: partner.id,
+                            uuid: partner.id,
                             name: partner.name,
                             userName: partner.alias,
                             photo: partner.photo,
