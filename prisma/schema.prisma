@@ -117,6 +117,7 @@ model CallLog {
   receiverId String
   status     String   // MADE, ANSWERED, DECLINED, ENDED, BUSY, MISSED
   isIncoming Boolean
+  durationSeconds Int?
   createdAt  DateTime @default(now())
 }
 
@@ -128,7 +129,7 @@ model Message {
   content         String?  // Text content if type is TEXT
   mediaUrl        String?  // Cloudinary URL if PHOTO, VIDEO, or AUDIO
   durationSeconds Int?     // Duration in seconds for audio/video notes
-  status          String   @default("SENT") // SENT, READ
+  status          String   @default("SENT") // SENT, DELIVERED, READ
   createdAt       DateTime @default(now())
 
   sender          User     @relation("SentMessages", fields: [senderId], references: [id])

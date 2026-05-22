@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import { busyUsers, activeCalls } from '../controllers/callController';
+import prisma from '../prisma';
 
 export const socketToUserMap = new Map<string, string>();
 export const userToSocketMap = new Map<string, string>();
@@ -8,12 +9,41 @@ export const setupSignaling = (io: Server) => {
   io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    socket.on('join', (userId: string) => {
+    socket.on('join', async (userId: string) => {
       socket.join(userId);
       socketToUserMap.set(socket.id, userId);
       userToSocketMap.set(userId, socket.id);
       console.log(`User ${userId} joined room ${userId}`);
       io.emit('presence_changed', { userId, status: 'online' });
+
+      // Mark all SENT messages addressed to this user as DELIVERED
+      // and notify the senders so their UI shows double gray check
+      try {
+        const sentMessages = await prisma.message.findMany({
+          where: { receiverId: userId, status: 'SENT' },
+          select: { id: true, senderId: true }
+        });
+
+        if (sentMessages.length > 0) {
+          await prisma.message.updateMany({
+            where: { receiverId: userId, status: 'SENT' },
+            data: { status: 'DELIVERED' }
+          });
+
+          // Group by sender and notify each sender
+          const senderGroups = new Map<string, string[]>();
+          for (const msg of sentMessages) {
+            const ids = senderGroups.get(msg.senderId) || [];
+            ids.push(msg.id);
+            senderGroups.set(msg.senderId, ids);
+          }
+          for (const [senderId, messageIds] of senderGroups) {
+            io.to(senderId).emit('messages_delivered', { messageIds, status: 'DELIVERED' });
+          }
+        }
+      } catch (err) {
+        console.error('Error marking messages as DELIVERED on join:', err);
+      }
     });
 
     socket.on('offer', ({ to, offer }) => {

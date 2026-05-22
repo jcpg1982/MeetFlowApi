@@ -3,6 +3,8 @@ import prisma from '../prisma';
 import { io } from '../index';
 import { sendNotification } from '../utils/notifications';
 
+import { userToSocketMap } from '../utils/signaling';
+
 export const getMessages = async (req: any, res: Response) => {
     try {
         const userId = req.userId;
@@ -12,20 +14,28 @@ export const getMessages = async (req: any, res: Response) => {
             return res.status(400).json({ message: 'otherUserId is required' });
         }
 
-        // Mark messages from otherUserId to userId as READ
-        await prisma.message.updateMany({
+        // Only mark as READ if there are actually unread messages (avoids false 'read' signal)
+        const unreadCount = await prisma.message.count({
             where: {
                 senderId: otherUserId,
                 receiverId: userId,
                 status: { not: 'READ' }
-            },
-            data: {
-                status: 'READ'
             }
         });
 
-        // Notify other user that their messages were read
-        io.to(otherUserId).emit('messages_read', { readerId: userId });
+        if (unreadCount > 0) {
+            await prisma.message.updateMany({
+                where: {
+                    senderId: otherUserId,
+                    receiverId: userId,
+                    status: { not: 'READ' }
+                },
+                data: { status: 'READ' }
+            });
+
+            // Notify the sender that their messages were read
+            io.to(otherUserId).emit('messages_read', { readerId: userId });
+        }
 
         const messages = await prisma.message.findMany({
             where: {
@@ -34,9 +44,7 @@ export const getMessages = async (req: any, res: Response) => {
                     { senderId: otherUserId, receiverId: userId }
                 ]
             },
-            orderBy: {
-                createdAt: 'asc'
-            }
+            orderBy: { createdAt: 'asc' }
         });
 
         res.json(messages);
@@ -58,6 +66,10 @@ export const sendMessage = async (req: any, res: Response) => {
             return res.status(400).json({ message: 'Cannot message yourself' });
         }
 
+        // Determine initial status: DELIVERED if receiver is online, otherwise SENT
+        const isReceiverOnline = userToSocketMap.has(receiverId);
+        const initialStatus = isReceiverOnline ? 'DELIVERED' : 'SENT';
+
         const message = await prisma.message.create({
             data: {
                 senderId,
@@ -65,13 +77,21 @@ export const sendMessage = async (req: any, res: Response) => {
                 type, // TEXT, PHOTO, VIDEO, AUDIO
                 content: content || null,
                 mediaUrl: mediaUrl || null,
-                durationSeconds: durationSeconds ? parseInt(durationSeconds) : null
+                durationSeconds: durationSeconds ? parseInt(durationSeconds) : null,
+                status: initialStatus
             }
         });
 
-        // Emit via Socket.io to sender and receiver rooms
-        io.to(senderId).emit('message_received', message);
+        // Always notify the receiver with the new message
         io.to(receiverId).emit('message_received', message);
+
+        if (isReceiverOnline) {
+            // Notify sender that message was delivered (double gray check)
+            io.to(senderId).emit('message_delivered', { messageId: message.id, status: 'DELIVERED' });
+        } else {
+            // Emit to sender room so sender sees the message in their own chat view
+            io.to(senderId).emit('message_received', message);
+        }
 
         // Send FCM notification to receiver
         try {
@@ -120,86 +140,90 @@ export const getConversations = async (req: any, res: Response) => {
     try {
         const userId = req.userId;
 
-        // Query all messages sent or received by userId
-        const messages = await prisma.message.findMany({
-            where: {
-                OR: [
-                    { senderId: userId },
-                    { receiverId: userId }
-                ]
-            },
-            orderBy: {
-                createdAt: 'desc'
-            }
+        // Get unique partner IDs from all messages
+        const sentMessages = await prisma.message.findMany({
+            where: { senderId: userId },
+            select: { receiverId: true },
+            distinct: ['receiverId']
+        });
+        const receivedMessages = await prisma.message.findMany({
+            where: { receiverId: userId },
+            select: { senderId: true },
+            distinct: ['senderId']
         });
 
-        const conversationsMap = new Map<string, any>();
-        
-        // Dynamic import to avoid circular dependencies
+        const partnerIds = new Set<string>([
+            ...sentMessages.map(m => m.receiverId),
+            ...receivedMessages.map(m => m.senderId)
+        ]);
+        partnerIds.delete(userId); // remove self
+
         const { userToSocketMap } = require('../utils/signaling');
 
-        for (const msg of messages) {
-            const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
-            if (partnerId === userId) continue; // Skip self messages
-
-            if (!conversationsMap.has(partnerId)) {
-                const partner = await prisma.user.findUnique({
-                    where: { id: partnerId },
-                    select: {
-                        id: true,
-                        name: true,
-                        alias: true,
-                        photo: true,
-                        email: true,
-                        bio: true,
-                        callPrice: true,
-                        rating: true,
-                        totalCalls: true,
-                        totalEarnings: true,
-                        followersCount: true,
-                        followingCount: true,
-                        likesCount: true
-                    }
-                });
-
-                if (partner) {
-                    // Count unread messages (status !== 'READ' and sender is the partner)
-                    const unreadCount = await prisma.message.count({
+        const conversations = await Promise.all(
+            Array.from(partnerIds).map(async (partnerId) => {
+                const [partner, lastMessageArr, unreadCount] = await Promise.all([
+                    prisma.user.findUnique({
+                        where: { id: partnerId },
+                        select: { id: true, name: true, alias: true, photo: true, email: true, bio: true, callPrice: true }
+                    }),
+                    prisma.message.findMany({
+                        where: {
+                            OR: [
+                                { senderId: userId, receiverId: partnerId },
+                                { senderId: partnerId, receiverId: userId }
+                            ]
+                        },
+                        orderBy: { createdAt: 'desc' },
+                        take: 1
+                    }),
+                    prisma.message.count({
                         where: {
                             senderId: partnerId,
                             receiverId: userId,
                             status: { not: 'READ' }
                         }
-                    });
+                    })
+                ]);
 
-                    // Determine isOnline
-                    const isOnline = userToSocketMap.has(partnerId);
+                if (!partner) return null;
 
-                    conversationsMap.set(partnerId, {
-                        user: {
-                            uuid: partner.id,
-                            name: partner.name,
-                            userName: partner.alias,
-                            photo: partner.photo,
-                            email: partner.email,
-                            bio: partner.bio,
-                            callPrice: partner.callPrice,
-                            rating: partner.rating,
-                            totalCalls: partner.totalCalls,
-                            totalEarnings: partner.totalEarnings,
-                            followersCount: partner.followersCount,
-                            followingCount: partner.followingCount,
-                            likesCount: partner.likesCount,
-                            isOnline
-                        },
-                        lastMessage: msg,
-                        unreadCount
-                    });
-                }
-            }
-        }
+                const lastMessage = lastMessageArr[0] || null;
+                const isOnline = userToSocketMap.has(partnerId);
 
-        res.json(Array.from(conversationsMap.values()));
+                return {
+                    user: {
+                        id: partner.id,
+                        name: partner.name,
+                        userName: partner.alias,
+                        photo: partner.photo,
+                        email: partner.email,
+                        bio: partner.bio,
+                        callPrice: partner.callPrice,
+                        rating: 0,
+                        totalCalls: 0,
+                        totalEarnings: 0,
+                        followersCount: 0,
+                        followingCount: 0,
+                        likesCount: 0,
+                        isOnline
+                    },
+                    lastMessage,
+                    unreadCount
+                };
+            })
+        );
+
+        // Sort by lastMessage createdAt desc, filter nulls
+        const sorted = conversations
+            .filter(c => c !== null)
+            .sort((a, b) => {
+                const aTime = a!.lastMessage?.createdAt ? new Date(a!.lastMessage.createdAt).getTime() : 0;
+                const bTime = b!.lastMessage?.createdAt ? new Date(b!.lastMessage.createdAt).getTime() : 0;
+                return bTime - aTime;
+            });
+
+        res.json(sorted);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching conversations', error });
     }

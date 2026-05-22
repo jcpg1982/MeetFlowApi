@@ -30,6 +30,10 @@ export const initiateCall = async (req: any, res: Response) => {
             return res.status(400).json({ message: 'Receiver ID is required' });
         }
 
+        if (callerId === receiverId) {
+            return res.status(400).json({ message: 'Cannot call yourself' });
+        }
+
         if (busyUsers.has(receiverId)) {
             return res.status(400).json({ message: 'USER_BUSY' });
         }
@@ -153,25 +157,60 @@ export const respondToCall = async (req: any, res: Response) => {
 
 export const logCall = async (req: any, res: Response) => {
     try {
-        const callerId = req.userId;
-        const { receiverId, status, isIncoming } = req.body;
+        const userId = req.userId;
+        const { receiverId, status, isIncoming, durationSeconds } = req.body;
 
         if (!receiverId || !status) {
             return res.status(400).json({ message: 'Receiver ID and status are required' });
         }
 
+        // Properly map callerId and receiverId based on who initiated the call.
+        // If isIncoming is true, the user logging this is the receiver, meaning the remote receiverId is the caller.
+        // If isIncoming is false, the user logging this is the caller, meaning the remote receiverId is the receiver.
+        const dbCallerId = isIncoming === true ? receiverId : userId;
+        const dbReceiverId = isIncoming === true ? userId : receiverId;
+
         const log = await prisma.callLog.create({
             data: {
-                callerId: callerId,
-                receiverId: receiverId,
+                callerId: dbCallerId,
+                receiverId: dbReceiverId,
                 status: status,
-                isIncoming: isIncoming === true
+                isIncoming: isIncoming === true,
+                durationSeconds: durationSeconds ? parseInt(durationSeconds) : 0
             }
         });
 
-        res.status(200).json({ message: 'Call logged successfully', log });
+        res.status(200).json(log);
     } catch (error) {
         console.error('Error logging call:', error);
         res.status(500).json({ message: 'Error logging call', error });
+    }
+};
+
+export const getCalls = async (req: any, res: Response) => {
+    try {
+        const userId = req.userId;
+        const logs = await prisma.callLog.findMany({
+            where: {
+                OR: [
+                    { callerId: userId },
+                    { receiverId: userId }
+                ]
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        // Compute isIncoming dynamically from the user's perspective
+        const mappedLogs = logs.map(log => ({
+            ...log,
+            isIncoming: log.receiverId === userId
+        }));
+
+        res.status(200).json(mappedLogs);
+    } catch (error) {
+        console.error('Error fetching call logs:', error);
+        res.status(500).json({ message: 'Error fetching call logs', error });
     }
 };

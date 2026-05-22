@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
 import { sendNotification } from '../utils/notifications';
+import { userToSocketMap } from '../utils/signaling';
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
@@ -58,8 +59,6 @@ export const getProfile = async (req: any, res: Response) => {
       isFollowing = !!follow;
     }
 
-    // Determine online status using userToSocketMap from signaling
-    const { userToSocketMap } = require('../utils/signaling');
     const isOnline = userToSocketMap.has(targetId);
 
     // Send profile visit notification via topic
