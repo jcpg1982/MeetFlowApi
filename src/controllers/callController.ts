@@ -85,8 +85,17 @@ export const initiateCall = async (req: any, res: Response) => {
                     apns: {
                         payload: {
                             aps: {
+                                alert: {
+                                    title: "Llamada entrante",
+                                    body: `${caller.name} te está llamando`
+                                },
+                                sound: 'default',
                                 'content-available': 1
                             }
+                        },
+                        headers: {
+                            'apns-priority': '10',
+                            'apns-push-type': 'alert'
                         }
                     }
                 };
@@ -193,8 +202,8 @@ export const getCalls = async (req: any, res: Response) => {
         const logs = await prisma.callLog.findMany({
             where: {
                 OR: [
-                    { callerId: userId },
-                    { receiverId: userId }
+                    { callerId: userId, isIncoming: false },
+                    { receiverId: userId, isIncoming: true }
                 ]
             },
             orderBy: {
@@ -202,11 +211,35 @@ export const getCalls = async (req: any, res: Response) => {
             }
         });
 
-        // Compute isIncoming dynamically from the user's perspective
-        const mappedLogs = logs.map(log => ({
-            ...log,
-            isIncoming: log.receiverId === userId
-        }));
+        // Fetch remote user details for each log to display in the call history
+        const remoteUserIds = Array.from(new Set(logs.map(log => 
+            log.callerId === userId ? log.receiverId : log.callerId
+        )));
+        
+        const remoteUsers = await prisma.user.findMany({
+            where: {
+                id: { in: remoteUserIds }
+            },
+            select: {
+                id: true,
+                name: true,
+                photo: true
+            }
+        });
+        
+        const remoteUserMap = new Map(remoteUsers.map(u => [u.id, u]));
+
+        // Compute isIncoming dynamically from the user's perspective and attach remote user info
+        const mappedLogs = logs.map(log => {
+            const remoteId = log.callerId === userId ? log.receiverId : log.callerId;
+            const remoteUser = remoteUserMap.get(remoteId);
+            return {
+                ...log,
+                isIncoming: log.receiverId === userId,
+                remoteUserName: remoteUser ? remoteUser.name : null,
+                remoteUserPhoto: remoteUser ? remoteUser.photo : null
+            };
+        });
 
         res.status(200).json(mappedLogs);
     } catch (error) {
