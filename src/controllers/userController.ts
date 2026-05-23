@@ -230,3 +230,16 @@ export const getFollowing = async (req: any, res: Response) => {
     res.status(500).json({ error: 'Error fetching following' });
   }
 };
+
+export const logout = async (req: any, res: Response) => {
+  const userId = req.userId;
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { fcmToken: null }
+    });
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error logging out' });
+  }
+};

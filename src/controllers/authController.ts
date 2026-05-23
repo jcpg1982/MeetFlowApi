@@ -178,3 +178,93 @@ export const logout = async (req: any, res: Response) => {
     res.status(500).json({ message: 'Error logging out', error });
   }
 };
+
+export const saveSocialUser = async (req: Request, res: Response) => {
+  try {
+    const { id, email, name, photoUrl, photo, deviceId, deviceName, forceLogout } = req.body;
+    
+    // El frontend puede enviar email (Firebase normalmente lo tiene para Google/Apple)
+    // Si no hay email, usamos un correo ficticio basado en el ID social.
+    const safeEmail = (email || `${id}@social.user`).toLowerCase();
+    
+    let user = await prisma.user.findUnique({ where: { email: safeEmail } });
+
+    if (!user) {
+      // REGISTRO DE NUEVO USUARIO SOCIAL
+      let alias = `user_${crypto.randomBytes(3).toString('hex')}`;
+      let aliasExists = await prisma.user.findUnique({ where: { alias } });
+      while (aliasExists) {
+        alias = `user_${crypto.randomBytes(3).toString('hex')}`;
+        aliasExists = await prisma.user.findUnique({ where: { alias } });
+      }
+
+      // No guardamos contraseña porque el acceso es por proveedor social
+      user = await prisma.user.create({
+        data: {
+          email: safeEmail,
+          alias,
+          password: '', 
+          name: name || 'Usuario',
+          photo: photo || photoUrl || null,
+          sessionId: null, // se actualizará más abajo
+        },
+      });
+    }
+
+    // INICIO DE SESIÓN ÚNICO (Manejo de sesiones activas)
+    if (user.sessionId && !forceLogout) {
+      return res.status(409).json({ 
+        message: 'ACTIVE_SESSION_EXISTS',
+        deviceName: user.lastDeviceName || 'Otro dispositivo'
+      });
+    }
+
+    // Notificar al dispositivo anterior si se va a forzar el cierre
+    if (user.sessionId) {
+      io.to(user.id).emit('force-logout', { 
+        message: 'Sesión iniciada en otro dispositivo por inicio social',
+        deviceName: deviceName || 'Desconocido'
+      });
+
+      if (user.fcmToken) {
+        try {
+          const { sendNotification } = require('../utils/notifications');
+          await sendNotification(
+            user.fcmToken,
+            'Nueva sesión iniciada',
+            `Se ha iniciado sesión social desde un nuevo dispositivo (${deviceName || 'Desconocido'}).`,
+            { type: 'SESSION_EXPIRED' }
+          );
+        } catch (error) {
+          console.error('Error sending social notification:', error);
+        }
+      }
+    }
+
+    // GENERAR TOKENS Y ACTUALIZAR SESIÓN
+    const sessionId = crypto.randomUUID();
+    const { accessToken, refreshToken } = generateTokens(user.id, sessionId);
+    
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        refreshToken, 
+        sessionId,
+        lastDeviceId: deviceId || null,
+        lastDeviceName: deviceName || null,
+        // Actualizar foto y nombre si vinieron en la petición y estaban vacíos
+        name: user.name === 'Usuario' && name ? name : undefined,
+        photo: !user.photo && (photo || photoUrl) ? (photo || photoUrl) : undefined,
+      }
+    });
+
+    res.json({ 
+      token: accessToken, 
+      refreshToken,
+      user: { id: user.id, email: user.email, name: user.name, userName: user.alias, photo: user.photo } 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving social user', error });
+  }
+};
+

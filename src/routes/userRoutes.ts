@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getUsers, getProfile, updateProfile, uploadMedia, updateFcmToken, followUser, getFollowers, getFollowing } from '../controllers/userController';
+import { getUsers, getProfile, updateProfile, uploadMedia, updateFcmToken, followUser, getFollowers, getFollowing, logout } from '../controllers/userController';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { uploadCloudinary } from '../utils/cloudinary';
 
@@ -13,5 +13,6 @@ router.post('/fcm-token', authMiddleware, updateFcmToken);
 router.post('/follow', authMiddleware, followUser);
 router.get('/followers', authMiddleware, getFollowers);
 router.get('/following', authMiddleware, getFollowing);
+router.post('/logout', authMiddleware, logout);
 
 export default router;
