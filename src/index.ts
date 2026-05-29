@@ -56,6 +56,15 @@ app.get('/safety', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// Global Error Handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('[Global Error Handler] Error detectado:', err);
+  res.status(500).json({
+    message: 'Internal Server Error',
+    error: typeof err === 'object' ? (err.message || JSON.stringify(err)) : err
+  });
+});
+
 // Setup Signaling
 setupSignaling(io);
 

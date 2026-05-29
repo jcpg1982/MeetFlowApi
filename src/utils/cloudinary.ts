@@ -14,7 +14,10 @@ const storage = new CloudinaryStorage({
     return {
       folder: 'meetflow',
       resource_type: 'auto', // Important for videos
-      public_id: `file-${Date.now()}`
+      public_id: `file-${Date.now()}`,
+      transformation: [
+        { video_codec: 'h264' } // Transcode to standard H.264 for universal compatibility
+      ]
     };
   },
 });

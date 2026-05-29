@@ -9,6 +9,13 @@ import { sendNotification } from '../utils/notifications';
 
 export const upload = uploadCloudinary;
 
+function formatVideoUrl(url: string): string {
+  if (url && url.startsWith('https://res.cloudinary.com/') && !url.includes('/vc_h264/')) {
+    return url.replace('/video/upload/', '/video/upload/vc_h264/');
+  }
+  return url;
+}
+
 export const uploadVideo = async (req: any, res: Response) => {
     try {
         const { title, description } = req.body;
@@ -24,7 +31,10 @@ export const uploadVideo = async (req: any, res: Response) => {
                 thumbnailUrl: '', // Generated on frontend or via ffmpeg later
             }
         });
-        res.status(201).json(video);
+        res.status(201).json({
+            ...video,
+            videoUrl: formatVideoUrl(video.videoUrl)
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error uploading video', error });
     }
@@ -57,6 +67,7 @@ export const getFeedVideos = async (req: any, res: Response) => {
 
         const mappedVideos = videos.map(v => ({
             ...v,
+            videoUrl: formatVideoUrl(v.videoUrl),
             isLiked: v.likes.length > 0,
             isFavorite: v.favorites.length > 0,
             user: {
@@ -79,7 +90,10 @@ export const getUserVideos = async (req: Request, res: Response) => {
             include: { user: { select: { id: true, name: true, alias: true, photo: true } } },
             orderBy: { createdAt: 'desc' }
         });
-        res.json(videos);
+        res.json(videos.map(v => ({
+            ...v,
+            videoUrl: formatVideoUrl(v.videoUrl)
+        })));
     } catch (error) {
         res.status(500).json({ message: 'Error fetching user videos', error });
     }
@@ -174,7 +188,10 @@ export const getFavoriteVideos = async (req: any, res: Response) => {
             where: { userId },
             include: { video: { include: { user: true } } }
         });
-        res.json(favorites.map(f => f.video));
+        res.json(favorites.map(f => ({
+            ...f.video,
+            videoUrl: formatVideoUrl(f.video.videoUrl)
+        })));
     } catch (error) {
         res.status(500).json({ message: 'Error fetching favorites', error });
     }
@@ -245,6 +262,7 @@ export const getFollowersFeed = async (req: any, res: Response) => {
 
         const mappedVideos = videos.map(v => ({
             ...v,
+            videoUrl: formatVideoUrl(v.videoUrl),
             isLiked: v.likes.length > 0,
             isFavorite: v.favorites.length > 0,
             user: {
