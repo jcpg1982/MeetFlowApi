@@ -1,0 +1,353 @@
+// Set Current Year in Footer
+document.getElementById('current-year').textContent = new Date().getFullYear();
+
+// Active Language (en or es)
+let currentLang = 'es';
+
+// Text Collections for Translation
+const texts = {
+  es: {
+    toggleBtn: "🌐 English",
+    navHome: "Inicio",
+    navPrivacy: "Privacidad",
+    navTerms: "Términos",
+    navSafety: "Seguridad",
+    footerHome: "Inicio",
+    footerPrivacy: "Política de Privacidad",
+    footerTerms: "Términos de Servicio",
+    footerSafety: "Seguridad Infantil",
+    homeTitle: 'Videollamadas Fluidas y<br><span>Reuniones Inteligentes</span>',
+    homeSubtitle: 'La solución multiplataforma completa para agendar citas profesionales y comunicarte al instante con video de alta definición (WebRTC).',
+    featuresTitle: '¿Por qué elegir MeetFlow?',
+    feat1Title: 'Videollamadas Realistas P2P',
+    feat1Desc: 'Comunícate directamente a través de flujos P2P impulsados por WebRTC nativo para una latencia mínima y máxima calidad de video.',
+    feat2Title: 'Agenda Integrada',
+    feat2Desc: 'Configura tus horarios y permite que tus clientes reserven citas directamente sin fricción de correos o chats.',
+    feat3Title: 'Notificaciones Push',
+    feat3Desc: 'Recibe avisos inmediatos en tu celular gracias a Firebase Cloud Messaging para que no te pierdas ninguna llamada importante.',
+    privacyContent: `
+      <h1>Política de Privacidad</h1>
+      <p><strong>Última actualización: 19 de Mayo de 2026</strong></p>
+      <p>En MeetFlow, nos tomamos muy en serio tu privacidad. Esta política de privacidad describe cómo recopilamos, utilizamos y protegemos tu información cuando utilizas nuestra aplicación móvil y nuestra plataforma web.</p>
+      
+      <h2>1. Información que recopilamos</h2>
+      <p>Para proporcionarte una experiencia fluida y de alta calidad, recopilamos las siguientes categorías de información:</p>
+      <ul>
+        <li><strong>Información de Registro:</strong> Nombre, correo electrónico, alias, contraseña encriptada y foto de perfil opcional.</li>
+        <li><strong>Identificadores de Dispositivo:</strong> Guardamos el identificador del dispositivo y el token de notificaciones push (FCM) únicamente para enviarte alertas de llamadas entrantes y recordatorios.</li>
+        <li><strong>Datos de llamadas y streaming:</strong> No almacenamos ni grabamos tus transmisiones de audio o video. Las llamadas de WebRTC se realizan mediante conexiones seguras punto a punto (P2P).</li>
+      </ul>
+
+      <h2>2. Uso de tu Información</h2>
+      <p>Utilizamos tu información exclusivamente para los siguientes fines:</p>
+      <ul>
+        <li>Autenticar y administrar tus sesiones de usuario seguras de manera exclusiva en un único dispositivo.</li>
+        <li>Gestionar el agendamiento y precio de citas entre usuarios y prestadores de servicio.</li>
+        <li>Establecer conexiones de video y audio para llamadas mediante señalización WebRTC.</li>
+        <li>Enviar alertas push de llamadas entrantes y estados de citas.</li>
+      </ul>
+
+      <h2>3. Almacenamiento y Protección de Datos</h2>
+      <p>Toda tu información se almacena de forma segura en bases de datos con cifrado estándar y tecnologías en la nube protegidas. No compartimos, vendemos ni alquilamos tus datos personales con terceros bajo ningún concepto, salvo en cumplimiento estricto con las obligaciones legales aplicables.</p>
+
+      <h2>4. Derechos del Usuario</h2>
+      <p>Tienes total derecho a acceder, rectificar o solicitar la eliminación definitiva de tus datos personales enviando una solicitud directamente a nuestro sistema en cualquier momento.</p>
+
+      <h2>5. Normas de Seguridad Infantil y Prohibición de EASI</h2>
+      <p>En <strong>MeetFlow</strong>, desarrollada por <strong>pe.com.master.machines</strong> (bajo la representación del desarrollador Juan Carlos Pinillos), aplicamos una política de tolerancia cero absoluta hacia cualquier comportamiento que ponga en peligro a los menores. Queda estrictamente prohibida la publicación, transmisión, almacenamiento, promoción o facilitación de cualquier contenido, mensaje o videollamada que constituya o fomente la <strong>Explotación y el Abuso Sexual Infantil (EASI / CSAE)</strong>.</p>
+      <p>Cualquier infracción a esta norma resultará en la expulsión inmediata y definitiva de la plataforma, el bloqueo permanente del dispositivo e informes ante las autoridades competentes y organizaciones internacionales de protección como el NCMEC.</p>
+      <p>Para reportar cualquier sospecha de comportamiento ilegal o material que afecte la seguridad de un menor, póngase en contacto directamente con nuestro Responsable de Seguridad Infantil, Juan Carlos Pinillos, al correo: <a href="mailto:safety.meetflow@gmail.com" style="color: var(--primary-neon); text-decoration: none; font-weight: 600;">safety.meetflow@gmail.com</a>.</p>
+    `,
+    termsContent: `
+      <h1>Términos y Condiciones de Servicio</h1>
+      <p><strong>Última actualización: 19 de Mayo de 2026</strong></p>
+      <p>Por favor, lee detalladamente estos términos de servicio antes de utilizar MeetFlow. Al acceder o utilizar nuestra plataforma, aceptas estar sujeto a estos términos.</p>
+      
+      <h2>1. Uso del Servicio</h2>
+      <p>MeetFlow te ofrece una plataforma para realizar videollamadas privadas punto a punto y la programación de citas virtuales. Eres responsable de mantener la confidencialidad de tus credenciales de acceso y de cualquier actividad en tu cuenta.</p>
+
+      <h2>2. Políticas de Seguridad de Cuentas</h2>
+      <p>Para resguardar la seguridad del servicio, MeetFlow implementa una política estricta de <strong>Dispositivo Único por sesión</strong>. Esto implica que no podrás mantener sesiones activas simultáneamente en varios teléfonos inteligentes. Iniciar sesión en un nuevo dispositivo cerrará automáticamente la sesión del dispositivo anterior.</p>
+
+      <h2>3. Conducta Aceptable</h2>
+      <p>Te comprometes a utilizar MeetFlow de forma ética y conforme a la ley. Queda estrictamente prohibido:</p>
+      <ul>
+        <li>Utilizar la plataforma para acoso, amenazas, difamación o transmisiones indecentes.</li>
+        <li>Hacer ingeniería inversa o interferir con la señalización e infraestructura de las videollamadas.</li>
+        <li>Interrumpir o dañar el servicio mediante inyecciones de código o ataques cibernéticos.</li>
+      </ul>
+
+      <h2>4. Limitación de Responsabilidad</h2>
+      <p>MeetFlow se provee "tal cual" y "según disponibilidad". No nos hacemos responsables de posibles fallos de conectividad inherentes a los servicios de red de Internet de los usuarios o de cortes temporales en la señalización P2P.</p>
+    `,
+    safetyContent: `
+      <h1>Normas de Seguridad Infantil</h1>
+      <p><strong>Última actualización: 28 de Mayo de 2026</strong></p>
+      <p>Esta declaración de Normas de Seguridad Infantil se aplica a la aplicación móvil y la plataforma web <strong>MeetFlow</strong>, desarrollada por <strong>pe.com.master.machines</strong> (representada por el desarrollador Juan Carlos Pinillos). En MeetFlow, nos comprometemos a mantener un entorno seguro y de confianza para toda nuestra comunidad. Tenemos una política de tolerancia cero absoluta hacia cualquier comportamiento que ponga en peligro a los menores.</p>
+
+      <h2>1. Prohibición Absoluta de Abuso y Explotación Sexual Infantil (ASEI / CSAE / ASII)</h2>
+      <p>Queda <strong>estrictamente prohibida</strong> la publicación, transmisión, almacenamiento, promoción o facilitación de cualquier contenido, mensaje o videollamada que constituya o fomente el <strong>Abuso y la Explotación Sexual Infantil (ASEI)</strong>, también conocido internacionalmente como <strong>CSAE</strong> o <strong>ASII</strong>. Esto incluye, de manera no limitativa:</p>
+      <ul>
+        <li>Cualquier tipo de material de abuso sexual infantil (CSAM), ya sean imágenes, videos o textos que involucren representaciones explícitas o insinuaciones de carácter sexual relacionadas con menores.</li>
+        <li>Comportamientos de ciberacoso sexual, captación, persuasión o "grooming" dirigidos a menores de edad con fines sexuales.</li>
+        <li>Cualquier tipo de contenido de explotación comercial infantil o trata de menores.</li>
+      </ul>
+      <p>Cualquier infracción a esta norma resultará en la <strong>expulsión inmediata y definitiva</strong> de la plataforma MeetFlow, la inhabilitación permanente del dispositivo y la cuenta del infractor, y el reporte directo de todos los datos pertinentes a las autoridades judiciales correspondientes.</p>
+
+      <h2>2. Canal y Equipo de Contacto para la Seguridad Infantil</h2>
+      <p>Para reportar de inmediato cualquier sospecha de comportamiento ilegal o material que afecte la seguridad de un menor, o para realizar consultas sobre nuestras normas, puede ponerse en contacto con nuestro equipo especializado:</p>
+      <ul>
+        <li><strong>Equipo de contacto:</strong> Equipo de Seguridad Infantil de MeetFlow / MeetFlow Child Safety Team</li>
+        <li><strong>Persona Responsable:</strong> Juan Carlos Pinillos (Responsable de Seguridad Infantil)</li>
+        <li><strong>Correo electrónico de contacto directo:</strong> <a href="mailto:safety.meetflow@gmail.com" style="color: var(--primary-neon); text-decoration: none; font-weight: 600;">safety.meetflow@gmail.com</a> (alternativamente, puede escribir a <a href="mailto:contacto.meetflow@gmail.com" style="color: var(--primary-neon); text-decoration: none; font-weight: 600;">contacto.meetflow@gmail.com</a>)</li>
+      </ul>
+
+      <h2>3. Mecanismo Integrado de Reportes y Comentarios</h2>
+      <p>MeetFlow cuenta con mecanismos integrados y accesibles dentro de la propia aplicación móvil para recibir comentarios, reportes e informes de conducta inapropiada por parte de los usuarios. Los usuarios pueden usar el botón de reporte directo en el perfil de cualquier usuario sospechoso, o en el menú de la conversación/videollamada en curso. Todas las denuncias son recibidas de inmediato por nuestro equipo de moderación y procesadas con máxima prioridad.</p>
+
+      <h2>4. Protocolo y Método para Abordar el ASEI/CSAE</h2>
+      <p>Cuando se recibe una denuncia o se detecta de manera automatizada una posible infracción en MeetFlow, el protocolo de acción es inmediato (en un plazo máximo de 24 horas):</p>
+      <ul>
+        <li><strong>Suspensión Preventiva:</strong> La cuenta reportada es suspendida preventivamente mientras se realiza la revisión manual de los metadatos y reportes.</li>
+        <li><strong>Eliminación de Contenido:</strong> Si se confirma la presencia de ASEI/CSAE, el contenido se elimina de forma permanente del sistema.</li>
+        <li><strong>Bloqueo Permanente:</strong> La cuenta se cancela de forma definitiva y se bloquea el identificador único del dispositivo para evitar que el usuario vuelva a registrarse.</li>
+        <li><strong>Notificación a las Autoridades:</strong> Notificamos de inmediato al Centro Nacional para Niños Desaparecidos y Explotados (<strong>NCMEC</strong>) y a las autoridades policiales, compartiendo todas las evidencias técnicas recopiladas (direcciones IP, correos electrónicos, chats, etc.) conforme a las leyes aplicables.</li>
+      </ul>
+
+      <h2>5. Cumplimiento de Leyes y Regulaciones</h2>
+      <p>MeetFlow cumple estrictamente con todas las leyes nacionales e internacionales aplicables en materia de protección y seguridad infantil, incluyendo la ley estadounidense de protección de la privacidad infantil en línea (<strong>COPPA</strong>), las directrices de seguridad infantil de Google Play y las leyes locales de protección del menor. Actualizamos y revisamos continuamente nuestras normas y herramientas de seguridad para adaptarnos a las normativas vigentes y mantener un entorno 100% libre de riesgos.</p>
+    `
+  },
+  en: {
+    toggleBtn: "🌐 Español",
+    navHome: "Home",
+    navPrivacy: "Privacy",
+    navTerms: "Terms",
+    navSafety: "Safety",
+    footerHome: "Home",
+    footerPrivacy: "Privacy Policy",
+    footerTerms: "Terms of Service",
+    footerSafety: "Child Safety",
+    homeTitle: 'Smooth Video Calls and<br><span>Smart Meetings</span>',
+    homeSubtitle: 'The complete multiplatform solution to schedule professional meetings and connect instantly with high-definition video calls (WebRTC).',
+    featuresTitle: 'Why choose MeetFlow?',
+    feat1Title: 'Realistic P2P Video Calls',
+    feat1Desc: 'Connect directly via P2P streams powered by native WebRTC for minimal latency and maximum video quality.',
+    feat2Title: 'Integrated Scheduling',
+    feat2Desc: 'Set your available hours and let your clients book meetings directly without the friction of endless emails or chats.',
+    feat3Title: 'Push Notifications',
+    feat3Desc: 'Receive immediate alerts on your mobile device powered by Firebase Cloud Messaging so you never miss an important call.',
+    privacyContent: `
+      <h1>Privacy Policy</h1>
+      <p><strong>Last updated: May 19, 2026</strong></p>
+      <p>At MeetFlow, we take your privacy very seriously. This privacy policy describes how we collect, use, and protect your information when you use our mobile application and our web platform.</p>
+      
+      <h2>1. Information We Collect</h2>
+      <p>To provide you with a smooth and high-quality experience, we collect the following categories of information:</p>
+      <ul>
+        <li><strong>Registration Data:</strong> Name, email address, alias, encrypted password, and optional profile picture.</li>
+        <li><strong>Device Identifiers:</strong> We store device identifiers and push notification tokens (FCM) solely to send you incoming call alerts and meeting reminders.</li>
+        <li><strong>Call & Streaming Data:</strong> We do not store, record, or intercept your audio or video streams. WebRTC calls are established via secure peer-to-peer (P2P) connections.</li>
+      </ul>
+
+      <h2>2. How We Use Your Information</h2>
+      <p>We use your information exclusively for the following purposes:</p>
+      <ul>
+        <li>To authenticate and manage your secure sessions exclusively on a single active device.</li>
+        <li>To manage schedules and meeting rates between users and service providers.</li>
+        <li>To establish audio and video connections for calls via WebRTC signaling.</li>
+        <li>To send push alerts for incoming calls and scheduled meeting status changes.</li>
+      </ul>
+
+      <h2>3. Data Protection and Storage</h2>
+      <p>All your information is safely stored in databases secured with standard encryption and protected cloud technologies. We do not share, sell, or rent your personal data to third parties under any circumstances, except in strict compliance with applicable legal obligations.</p>
+
+      <h2>4. User Rights</h2>
+      <p>You have full rights to access, rectify, or request the permanent deletion of your personal data by sending a request directly to our system at any time.</p>
+
+      <h2>5. Child Safety Standards and CSAE Prohibition</h2>
+      <p>In <strong>MeetFlow</strong>, developed by <strong>pe.com.master.machines</strong> (under the representation of developer Juan Carlos Pinillos), we enforce a strict zero-tolerance policy against any behavior that endangers minors. The publication, transmission, storage, promotion, or facilitation of any content, messages, or video calls that constitute or encourage <strong>Child Sexual Abuse and Exploitation (CSAE / CSAM)</strong> is strictly prohibited.</p>
+      <p>Any violation of this rule will result in the immediate and permanent termination of the user's account, a permanent block on their device, and reports to relevant law enforcement and international protective organizations such as NCMEC.</p>
+      <p>To report any suspected illegal behavior or material affecting a minor's safety, please contact our Child Safety Representative, Juan Carlos Pinillos, directly at: <a href="mailto:safety.meetflow@gmail.com" style="color: var(--primary-neon); text-decoration: none; font-weight: 600;">safety.meetflow@gmail.com</a>.</p>
+    `,
+    termsContent: `
+      <h1>Terms and Conditions of Service</h1>
+      <p><strong>Last updated: May 19, 2026</strong></p>
+      <p>Please read these terms of service carefully before using MeetFlow. By accessing or using our platform, you agree to be bound by these terms.</p>
+      
+      <h2>1. Use of the Service</h2>
+      <p>MeetFlow provides you with a platform for holding private peer-to-peer video calls and scheduling virtual appointments. You are responsible for maintaining the confidentiality of your login credentials and for any activity under your account.</p>
+
+      <h2>2. Account Security Policies</h2>
+      <p>To ensure account security, MeetFlow enforces a strict <strong>Single Active Device</strong> session policy. This means you cannot maintain active sessions simultaneously on multiple smartphones. Logging in on a new device will automatically terminate the active session on your previous device.</p>
+
+      <h2>3. Acceptable Conduct</h2>
+      <p>You agree to use MeetFlow ethically and in compliance with the law. You are strictly prohibited from:</p>
+      <ul>
+        <li>Using the platform for harassment, threats, defamation, or indecent transmissions.</li>
+        <li>Reverse engineering or interfering with our video call signaling and infrastructure.</li>
+        <li>Disrupting or harming the service via code injections or cyberattacks.</li>
+      </ul>
+
+      <h2>4. Limitation of Liability</h2>
+      <p>MeetFlow is provided on an "as is" and "as available" basis. We are not liable for connection failures inherent to users' internet services or temporary drops in WebRTC P2P signaling.</p>
+    `,
+    safetyContent: `
+      <h1>Child Safety Standards</h1>
+      <p><strong>Last updated: May 28, 2026</strong></p>
+      <p>This Child Safety Standards statement applies to the <strong>MeetFlow</strong> mobile application and web platform, developed by <strong>pe.com.master.machines</strong> (represented by developer Juan Carlos Pinillos). At MeetFlow, we are deeply committed to maintaining a safe, trusted, and respectful environment for our entire community. We enforce a strict, zero-tolerance policy against any behavior that endangers minors.</p>
+
+      <h2>1. Explicit Prohibition of Child Sexual Abuse and Exploitation (CSAE / CSAM)</h2>
+      <p>The publication, transmission, storage, promotion, or facilitation of any content, messages, or video calls that constitute or encourage <strong>Child Sexual Abuse and Exploitation (CSAE)</strong>, also known as <strong>ASEI</strong> or <strong>ASII</strong>, is <strong>strictly prohibited</strong> on MeetFlow. This includes, but is not limited to:</p>
+      <ul>
+        <li>Any form of Child Sexual Abuse Material (CSAM), including images, videos, or text depicting explicit or sexually suggestive representations of minors.</li>
+        <li>Cyber-harassment, online solicitation, online persuasion, or "grooming" behaviors targeting minors under the age of 18 for sexual purposes.</li>
+        <li>Any form of commercial child exploitation, child abuse, or child trafficking.</li>
+      </ul>
+      <p>Any violation of this rule will result in the <strong>immediate and permanent termination</strong> of the offending user's MeetFlow account, a permanent block on their device identifier, and the direct reporting of all relevant data to the appropriate law enforcement authorities.</p>
+
+      <h2>2. Dedicated Child Safety Contact Person and Team</h2>
+      <p>To report any suspected illegal behavior, abusive material, or safety concerns regarding a minor on our platform, or for any questions about our standards, you can contact our dedicated team:</p>
+      <ul>
+        <li><strong>Contact Team:</strong> MeetFlow Child Safety Team / Equipo de Seguridad Infantil de MeetFlow</li>
+        <li><strong>Responsible Representative:</strong> Juan Carlos Pinillos (Child Safety Representative)</li>
+        <li><strong>Direct Contact Email:</strong> <a href="mailto:safety.meetflow@gmail.com" style="color: var(--primary-neon); text-decoration: none; font-weight: 600;">safety.meetflow@gmail.com</a> (alternatively, you may write to <a href="mailto:contacto.meetflow@gmail.com" style="color: var(--primary-neon); text-decoration: none; font-weight: 600;">contacto.meetflow@gmail.com</a>)</li>
+      </ul>
+
+      <h2>3. Integrated User Reporting & Feedback Mechanism</h2>
+      <p>MeetFlow provides accessible and integrated reporting mechanisms within the mobile application. Users can submit reports, feedback, and complaints regarding inappropriate behavior by using the reporting button on any user's profile, or within the ongoing chat or video call screen. All reports are immediately sent to our moderation team and reviewed with the highest priority.</p>
+
+      <h2>4. Protocol and Method for Addressing CSAE/ASEI</h2>
+      <p>Upon receiving a report or detecting a potential violation through our automated mechanisms, MeetFlow initiates the following action protocol immediately (within 24 hours):</p>
+      <ul>
+        <li><strong>Preventive Suspension:</strong> The reported account is temporarily suspended while our moderation team conducts a manual review.</li>
+        <li><strong>Content Removal:</strong> If the presence of CSAE/ASEI is confirmed, the content is permanently deleted from our servers.</li>
+        <li><strong>Permanent Banning:</strong> The offending user's account is permanently terminated, and their unique device identifier is blacklisted to prevent re-registration.</li>
+        <li><strong>Law Enforcement Notification:</strong> We immediately notify the National Center for Missing & Exploited Children (<strong>NCMEC</strong>) and local law enforcement authorities, providing all relevant technical evidence (such as IP addresses, emails, and chat metadata) as required by applicable laws.</li>
+      </ul>
+
+      <h2>5. Compliance with Laws and Regulations</h2>
+      <p>MeetFlow strictly complies with all applicable national and international child safety laws, including the Children's Online Privacy Protection Act (<strong>COPPA</strong>), Google Play's Child Safety policies, and local child protection laws. We continuously update and review our standards and tools to ensure compliance with changing regulations and to keep our environment completely safe for everyone.</p>
+    `
+  }
+};
+
+// Auto-detect browser language
+function detectLanguage() {
+  const browserLang = navigator.language || navigator.userLanguage;
+  if (browserLang && browserLang.toLowerCase().startsWith('en')) {
+    currentLang = 'en';
+  } else {
+    currentLang = 'es';
+  }
+  applyTranslations();
+}
+
+// Toggle Language
+function toggleLanguage() {
+  currentLang = currentLang === 'es' ? 'en' : 'es';
+  applyTranslations();
+}
+
+// Apply translations to DOM
+function applyTranslations() {
+  const t = texts[currentLang];
+  
+  // Update toggle button text
+  document.getElementById('lang-toggle-btn').textContent = t.toggleBtn;
+  
+  // Update nav and footer links
+  document.getElementById('nav-home').textContent = t.navHome;
+  document.getElementById('nav-privacy').textContent = t.navPrivacy;
+  document.getElementById('nav-terms').textContent = t.navTerms;
+  document.getElementById('nav-safety').textContent = t.navSafety;
+  
+  document.getElementById('footer-home').textContent = t.footerHome;
+  document.getElementById('footer-privacy').textContent = t.footerPrivacy;
+  document.getElementById('footer-terms').textContent = t.footerTerms;
+  document.getElementById('footer-safety').textContent = t.footerSafety;
+  
+  // Update home page text
+  document.getElementById('home-title').innerHTML = t.homeTitle;
+  document.getElementById('home-subtitle').textContent = t.homeSubtitle;
+  document.getElementById('features-title').textContent = t.featuresTitle;
+  
+  document.getElementById('feat1-title').textContent = t.feat1Title;
+  document.getElementById('feat1-desc').textContent = t.feat1Desc;
+  document.getElementById('feat2-title').textContent = t.feat2Title;
+  document.getElementById('feat2-desc').textContent = t.feat2Desc;
+  document.getElementById('feat3-title').textContent = t.feat3Title;
+  document.getElementById('feat3-desc').textContent = t.feat3Desc;
+  
+  // Inject Policy Documents
+  document.getElementById('privacy-body').innerHTML = t.privacyContent;
+  document.getElementById('terms-body').innerHTML = t.termsContent;
+  document.getElementById('safety-body').innerHTML = t.safetyContent;
+
+  // Update Page Title
+  document.title = currentLang === 'es' ? "MeetFlow - Conexiones Fluidas y Reuniones Inteligentes" : "MeetFlow - Fluid Connections & Smart Meetings";
+}
+
+// SPA Routing Logic (History API and local file:// compatible)
+function navigateTo(path) {
+  if (window.location.protocol === 'file:') {
+    // Under file:// protocol, pushState throws security errors, so we route locally
+    resolveRoute(path);
+  } else {
+    try {
+      window.history.pushState(null, '', path);
+      resolveRoute(path);
+    } catch (e) {
+      console.error('[Routing Error]', e);
+      resolveRoute(path);
+    }
+  }
+}
+
+function resolveRoute(path) {
+  // Deactivate all navigation items
+  document.getElementById('nav-home').classList.remove('active');
+  document.getElementById('nav-privacy').classList.remove('active');
+  document.getElementById('nav-terms').classList.remove('active');
+  document.getElementById('nav-safety').classList.remove('active');
+
+  // Deactivate all views
+  document.getElementById('view-home').classList.remove('active');
+  document.getElementById('view-privacy').classList.remove('active');
+  document.getElementById('view-terms').classList.remove('active');
+  document.getElementById('view-safety').classList.remove('active');
+
+  // Normalize path (remove trailing slash and check matching endings)
+  let cleanPath = path.toLowerCase().trim();
+  if (cleanPath.endsWith('/')) {
+    cleanPath = cleanPath.slice(0, -1);
+  }
+
+  // Activate correct view and highlight menu
+  if (cleanPath.endsWith('/privacy') || cleanPath === 'privacy') {
+    document.getElementById('view-privacy').classList.add('active');
+    document.getElementById('nav-privacy').classList.add('active');
+    window.scrollTo(0, 0);
+  } else if (cleanPath.endsWith('/terms') || cleanPath === 'terms') {
+    document.getElementById('view-terms').classList.add('active');
+    document.getElementById('nav-terms').classList.add('active');
+    window.scrollTo(0, 0);
+  } else if (cleanPath.endsWith('/safety') || cleanPath === 'safety') {
+    document.getElementById('view-safety').classList.add('active');
+    document.getElementById('nav-safety').classList.add('active');
+    window.scrollTo(0, 0);
+  } else {
+    document.getElementById('view-home').classList.add('active');
+    document.getElementById('nav-home').classList.add('active');
+    window.scrollTo(0, 0);
+  }
+}
+
+// Listen to browser forward/backward navigation
+window.addEventListener('popstate', () => {
+  resolveRoute(window.location.pathname);
+});
+
+// Initialize Page
+detectLanguage();
+resolveRoute(window.location.pathname);
