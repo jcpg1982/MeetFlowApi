@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeetFlow - Términos y Condiciones</title>
+  
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- External CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Premium Header -->
+  <header>
+    <a href="index.html" class="logo-container" style="text-decoration: none;">
+      <div class="logo-icon">M</div>
+      <div class="logo-text">MeetFlow</div>
+    </a>
+    
+    <nav id="nav-links">
+      <a href="index.html" id="nav-home">Inicio</a>
+      <a href="privacy.html" id="nav-privacy">Privacidad</a>
+      <a href="terms.html" id="nav-terms" class="active">Términos</a>
+      <a href="safety.html" id="nav-safety">Seguridad</a>
+      <button class="lang-btn" onclick="toggleLanguage()" id="lang-toggle-btn">
+        🌐 English
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Content Space -->
+  <main>
+    <div class="glass-card document-body">
+      
+      <!-- Spanish Terms Content -->
+      <div class="lang-es">
+        <h1>Términos y Condiciones de Servicio</h1>
+        <p><strong>Última actualización: 19 de Mayo de 2026</strong></p>
+        <p>Por favor, lee detalladamente estos términos de servicio antes de utilizar MeetFlow. Al acceder o utilizar nuestra plataforma, aceptas estar sujeto a estos términos.</p>
+        
+        <h2>1. Uso del Servicio</h2>
+        <p>MeetFlow te ofrece una plataforma para realizar videollamadas privadas punto a punto y la programación de citas virtuales. Eres responsable de mantener la confidencialidad de tus credenciales de acceso y de cualquier actividad en tu cuenta.</p>
+
+        <h2>2. Políticas de Seguridad de Cuentas</h2>
+        <p>Para resguardar la seguridad del servicio, MeetFlow implementa una política estricta de <strong>Dispositivo Único por sesión</strong>. Esto implica que no podrás mantener sesiones activas simultáneamente en varios teléfonos inteligentes. Iniciar sesión en un nuevo dispositivo cerrará automáticamente la sesión del dispositivo anterior.</p>
+
+        <h2>3. Conducta Aceptable</h2>
+        <p>Te comprometes a utilizar MeetFlow de forma ética y conforme a la ley. Queda estrictamente prohibido:</p>
+        <ul>
+          <li>Te comprometes a utilizar la plataforma conforme a la ley. Queda prohibido acoso, amenazas, difamación o transmisiones indecentes.</li>
+          <li>Hacer ingeniería inversa o interferir con la señalización e infraestructura de las videollamadas.</li>
+          <li>Interrumpir o dañar el servicio mediante inyecciones de código o ataques cibernéticos.</li>
+        </ul>
+
+        <h2>4. Limitación de Responsabilidad</h2>
+        <p>MeetFlow se provee "tal cual" y "según disponibilidad". No nos hacemos responsables de posibles fallos de conectividad inherentes a los servicios de red de Internet de los usuarios o de cortes temporales en la señalización P2P.</p>
+      </div>
+
+      <!-- English Terms Content -->
+      <div class="lang-en">
+        <h1>Terms and Conditions of Service</h1>
+        <p><strong>Last updated: May 19, 2026</strong></p>
+        <p>Please read these terms of service carefully before using MeetFlow. By accessing or using our platform, you agree to be bound by these terms.</p>
+        
+        <h2>1. Use of the Service</h2>
+        <p>MeetFlow provides you with a platform for holding private peer-to-peer video calls and scheduling virtual appointments. You are responsible for maintaining the confidentiality of your login credentials and for any activity under your account.</p>
+
+        <h2>2. Account Security Policies</h2>
+        <p>To ensure account security, MeetFlow enforces a strict <strong>Single Active Device</strong> session policy. This means you cannot maintain active sessions simultaneously on multiple smartphones. Logging in on a new device will automatically terminate the active session on your previous device.</p>
+
+        <h2>3. Acceptable Conduct</h2>
+        <p>You agree to use MeetFlow ethically and in compliance with the law. You are strictly prohibited from:</p>
+        <ul>
+          <li>Using the platform for harassment, threats, defamation, or indecent transmissions.</li>
+          <li>Reverse engineering or interfering with our video call signaling and infrastructure.</li>
+          <li>Disrupting or harming the service via code injections or cyberattacks.</li>
+        </ul>
+
+        <h2>4. Limitation of Liability</h2>
+        <p>MeetFlow is provided on an "as is" and "as available" basis. We are not liable for connection failures inherent to users' internet services or temporary drops in WebRTC P2P signaling.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="index.html" id="footer-home">Inicio</a>
+      <a href="privacy.html" id="footer-privacy">Política de Privacidad</a>
+      <a href="terms.html" id="footer-terms">Términos de Servicio</a>
+      <a href="safety.html" id="footer-safety">Seguridad Infantil</a>
+    </div>
+    <p>&copy; <span id="current-year"></span> MeetFlow. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- External JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

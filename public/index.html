@@ -17,16 +17,16 @@
 
   <!-- Premium Header -->
   <header>
-    <div class="logo-container" onclick="navigateTo('/')">
+    <a href="index.html" class="logo-container" style="text-decoration: none;">
       <div class="logo-icon">M</div>
       <div class="logo-text">MeetFlow</div>
-    </div>
+    </a>
     
     <nav id="nav-links">
-      <a onclick="navigateTo('/')" id="nav-home" class="active">Inicio</a>
-      <a onclick="navigateTo('/privacy')" id="nav-privacy">Privacidad</a>
-      <a onclick="navigateTo('/terms')" id="nav-terms">Términos</a>
-      <a onclick="navigateTo('/safety')" id="nav-safety">Seguridad</a>
+      <a href="index.html" id="nav-home" class="active">Inicio</a>
+      <a href="privacy.html" id="nav-privacy">Privacidad</a>
+      <a href="terms.html" id="nav-terms">Términos</a>
+      <a href="safety.html" id="nav-safety">Seguridad</a>
       <button class="lang-btn" onclick="toggleLanguage()" id="lang-toggle-btn">
         🌐 English
       </button>
@@ -36,53 +36,61 @@
   <!-- Main Content Space -->
   <main>
     
-    <!-- ================= HOME VIEW ================= -->
-    <div id="view-home" class="view-content active">
+    <!-- Spanish Home Content -->
+    <div class="lang-es">
       <div class="hero-section">
-        <h1 class="hero-title" id="home-title">Videollamadas Fluidas y<br><span>Reuniones Inteligentes</span></h1>
-        <p class="hero-subtitle" id="home-subtitle">La solución multiplataforma completa para agendar citas profesionales y comunicarte al instante con video de alta definición (WebRTC).</p>
+        <h1 class="hero-title">Videollamadas Fluidas y<br><span>Reuniones Inteligentes</span></h1>
+        <p class="hero-subtitle">La solución multiplataforma completa para agendar citas profesionales y comunicarte al instante con video de alta definición (WebRTC).</p>
       </div>
 
       <div class="glass-card">
-        <h2 style="text-align: center; margin-bottom: 2rem;" id="features-title">¿Por qué elegir MeetFlow?</h2>
+        <h2 style="text-align: center; margin-bottom: 2rem;">¿Por qué elegir MeetFlow?</h2>
         <div class="features-grid">
           <div class="feature-card">
             <div class="feature-icon">📞</div>
-            <h3 id="feat1-title">Videollamadas Realistas P2P</h3>
-            <p id="feat1-desc">Comunícate directamente a través de flujos P2P impulsados por WebRTC nativo para una latencia mínima y máxima calidad de video.</p>
+            <h3>Videollamadas Realistas P2P</h3>
+            <p>Comunícate directamente a través de flujos P2P impulsados por WebRTC nativo para una latencia mínima y máxima calidad de video.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">📅</div>
-            <h3 id="feat2-title">Agenda Integrada</h3>
-            <p id="feat2-desc">Configura tus horarios y permite que tus clientes reserven citas directamente sin fricción de correos o chats.</p>
+            <h3>Agenda Integrada</h3>
+            <p>Configura tus horarios y permite que tus clientes reserven citas directamente sin fricción de correos o chats.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">🔔</div>
-            <h3 id="feat3-title">Notificaciones Push</h3>
-            <p id="feat3-desc">Recibe avisos inmediatos en tu celular gracias a Firebase Cloud Messaging para que no te pierdas ninguna llamada importante.</p>
+            <h3>Notificaciones Push</h3>
+            <p>Recibe avisos inmediatos en tu celular gracias a Firebase Cloud Messaging para que no te pierdas ninguna llamada importante.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ================= PRIVACY VIEW ================= -->
-    <div id="view-privacy" class="view-content">
-      <div class="glass-card document-body" id="privacy-body">
-        <!-- Content will be injected dynamically according to active language -->
+    <!-- English Home Content -->
+    <div class="lang-en">
+      <div class="hero-section">
+        <h1 class="hero-title">Smooth Video Calls and<br><span>Smart Meetings</span></h1>
+        <p class="hero-subtitle">The complete multiplatform solution to schedule professional meetings and connect instantly with high-definition video calls (WebRTC).</p>
       </div>
-    </div>
 
-    <!-- ================= TERMS VIEW ================= -->
-    <div id="view-terms" class="view-content">
-      <div class="glass-card document-body" id="terms-body">
-        <!-- Content will be injected dynamically according to active language -->
-      </div>
-    </div>
-
-    <!-- ================= SAFETY VIEW ================= -->
-    <div id="view-safety" class="view-content">
-      <div class="glass-card document-body" id="safety-body">
-        <!-- Content will be injected dynamically according to active language -->
+      <div class="glass-card">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Why choose MeetFlow?</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">📞</div>
+            <h3>Realistic P2P Video Calls</h3>
+            <p>Connect directly via P2P streams powered by native WebRTC for minimal latency and maximum video quality.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📅</div>
+            <h3>Integrated Scheduling</h3>
+            <p>Set your available hours and let your clients book meetings directly without the friction of endless emails or chats.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔔</div>
+            <h3>Push Notifications</h3>
+            <p>Receive immediate alerts on your mobile device powered by Firebase Cloud Messaging so you never miss an important call.</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -91,10 +99,10 @@
   <!-- Footer -->
   <footer>
     <div class="footer-links">
-      <a onclick="navigateTo('/')" id="footer-home">Inicio</a>
-      <a onclick="navigateTo('/privacy')" id="footer-privacy">Política de Privacidad</a>
-      <a onclick="navigateTo('/terms')" id="footer-terms">Términos de Servicio</a>
-      <a onclick="navigateTo('/safety')" id="footer-safety">Seguridad Infantil</a>
+      <a href="index.html" id="footer-home">Inicio</a>
+      <a href="privacy.html" id="footer-privacy">Política de Privacidad</a>
+      <a href="terms.html" id="footer-terms">Términos de Servicio</a>
+      <a href="safety.html" id="footer-safety">Seguridad Infantil</a>
     </div>
     <p>&copy; <span id="current-year"></span> MeetFlow. Todos los derechos reservados.</p>
   </footer>
