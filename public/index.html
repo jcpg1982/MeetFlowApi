@@ -738,10 +738,20 @@
       document.title = currentLang === 'es' ? "MeetFlow - Conexiones Fluidas y Reuniones Inteligentes" : "MeetFlow - Fluid Connections & Smart Meetings";
     }
 
-    // SPA Routing Logic (History API compatible)
+    // SPA Routing Logic (History API and local file:// compatible)
     function navigateTo(path) {
-      window.history.pushState(null, '', path);
-      resolveRoute(path);
+      if (window.location.protocol === 'file:') {
+        // Under file:// protocol, pushState throws security errors, so we route locally
+        resolveRoute(path);
+      } else {
+        try {
+          window.history.pushState(null, '', path);
+          resolveRoute(path);
+        } catch (e) {
+          console.error('[Routing Error]', e);
+          resolveRoute(path);
+        }
+      }
     }
 
     function resolveRoute(path) {
@@ -757,16 +767,22 @@
       document.getElementById('view-terms').classList.remove('active');
       document.getElementById('view-safety').classList.remove('active');
 
+      // Normalize path (remove trailing slash and check matching endings)
+      let cleanPath = path.toLowerCase().trim();
+      if (cleanPath.endsWith('/')) {
+        cleanPath = cleanPath.slice(0, -1);
+      }
+
       // Activate correct view and highlight menu
-      if (path === '/privacy') {
+      if (cleanPath.endsWith('/privacy') || cleanPath === 'privacy') {
         document.getElementById('view-privacy').classList.add('active');
         document.getElementById('nav-privacy').classList.add('active');
         window.scrollTo(0, 0);
-      } else if (path === '/terms') {
+      } else if (cleanPath.endsWith('/terms') || cleanPath === 'terms') {
         document.getElementById('view-terms').classList.add('active');
         document.getElementById('nav-terms').classList.add('active');
         window.scrollTo(0, 0);
-      } else if (path === '/safety') {
+      } else if (cleanPath.endsWith('/safety') || cleanPath === 'safety') {
         document.getElementById('view-safety').classList.add('active');
         document.getElementById('nav-safety').classList.add('active');
         window.scrollTo(0, 0);
